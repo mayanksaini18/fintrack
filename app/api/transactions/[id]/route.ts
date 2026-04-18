@@ -1,0 +1,32 @@
+import { db } from '@/lib/db';
+import { transactions } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await request.json();
+
+  const updates: Record<string, unknown> = {};
+  if (body.date) updates.date = new Date(body.date);
+  if (body.amount !== undefined) updates.amount = body.amount;
+  if (body.category) updates.category = body.category;
+  if (body.type) updates.type = body.type;
+  if (body.description) updates.description = body.description;
+
+  await db.update(transactions).set(updates).where(eq(transactions.id, id));
+
+  return Response.json({ id, ...body });
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  await db.delete(transactions).where(eq(transactions.id, id));
+  return Response.json({ deleted: id });
+}
