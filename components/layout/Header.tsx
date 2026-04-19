@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, Receipt, TrendingUp } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { UserButton } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -73,6 +74,7 @@ export default function Header() {
       <div className="flex items-center gap-1">
         <ThemeToggle />
         <RoleSwitcher />
+        <UserButton />
       </div>
     </header>
   );
