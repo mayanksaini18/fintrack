@@ -1,12 +1,16 @@
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
   const body = await request.json();
 
@@ -17,7 +21,10 @@ export async function PUT(
   if (body.type) updates.type = body.type;
   if (body.description) updates.description = body.description;
 
-  await db.update(transactions).set(updates).where(eq(transactions.id, id));
+  await db
+    .update(transactions)
+    .set(updates)
+    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
 
   return Response.json({ id, ...body });
 }
@@ -26,7 +33,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { id } = await params;
-  await db.delete(transactions).where(eq(transactions.id, id));
+  await db
+    .delete(transactions)
+    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+
   return Response.json({ deleted: id });
 }
