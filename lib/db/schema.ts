@@ -41,3 +41,11 @@ export const recurringTransactions = pgTable('recurring_transactions', {
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const budgets = pgTable('budgets', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  category: categoryEnum('category').notNull(),
+  monthlyLimit: integer('monthly_limit').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
