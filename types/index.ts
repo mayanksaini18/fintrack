@@ -37,6 +37,13 @@ export interface RecurringTransaction {
   isActive: boolean;
 }
 
+export interface Budget {
+  id: string;
+  category: Category;
+  monthlyLimit: number;
+  spent: number;
+}
+
 export interface Filters {
   search: string;
   category: Category | "all";
