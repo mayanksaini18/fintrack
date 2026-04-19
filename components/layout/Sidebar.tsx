@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, TrendingUp, CalendarClock } from 'lucide-react';
+import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: Receipt },
   { href: '/recurring', label: 'Recurring', icon: CalendarClock },
+  { href: '/budgets', label: 'Budgets', icon: Target },
   { href: '/insights', label: 'Insights', icon: TrendingUp },
 ];
 
