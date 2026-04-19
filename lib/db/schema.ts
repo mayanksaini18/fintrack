@@ -17,6 +17,7 @@ export const categoryEnum = pgEnum('category', [
 
 export const transactions = pgTable('transactions', {
   id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
   date: timestamp('date', { withTimezone: true }).notNull(),
   amount: integer('amount').notNull(),
   category: categoryEnum('category').notNull(),
