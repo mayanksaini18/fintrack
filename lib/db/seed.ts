@@ -9,8 +9,11 @@ async function seed() {
 
   console.log('Seeding database with mock transactions...');
 
+  const userId = process.env.SEED_USER_ID || 'seed-user';
+
   const values = mockTransactions.map((t) => ({
     id: t.id,
+    userId,
     date: new Date(t.date),
     amount: t.amount,
     category: t.category as typeof transactions.category.enumValues[number],
