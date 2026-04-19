@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Receipt, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Receipt, TrendingUp, CalendarClock } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { UserButton } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: Receipt },
+  { href: '/recurring', label: 'Recurring', icon: CalendarClock },
   { href: '/insights', label: 'Insights', icon: TrendingUp },
 ];
 
