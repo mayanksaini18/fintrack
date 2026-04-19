@@ -1,9 +1,13 @@
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, asc, ilike, eq, and, SQL } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
   const url = request.nextUrl;
   const search = url.searchParams.get('search') || '';
   const category = url.searchParams.get('category') || 'all';
@@ -11,7 +15,7 @@ export async function GET(request: NextRequest) {
   const sortBy = url.searchParams.get('sortBy') || 'date';
   const sortOrder = url.searchParams.get('sortOrder') || 'desc';
 
-  const conditions: SQL[] = [];
+  const conditions: SQL[] = [eq(transactions.userId, userId)];
 
   if (search) {
     conditions.push(ilike(transactions.description, `%${search}%`));
@@ -29,7 +33,7 @@ export async function GET(request: NextRequest) {
   const results = await db
     .select()
     .from(transactions)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(and(...conditions))
     .orderBy(orderFn(orderCol));
 
   const mapped = results.map((r) => ({
@@ -45,11 +49,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await request.json();
   const id = crypto.randomUUID();
 
   await db.insert(transactions).values({
     id,
+    userId,
     date: new Date(body.date),
     amount: body.amount,
     category: body.category,
