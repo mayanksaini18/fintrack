@@ -23,6 +23,20 @@ export interface Transaction {
   description: string;
 }
 
+export type Frequency = "weekly" | "monthly" | "yearly";
+
+export interface RecurringTransaction {
+  id: string;
+  amount: number;
+  category: Category;
+  type: TransactionType;
+  description: string;
+  frequency: Frequency;
+  startDate: string;
+  nextDueDate: string;
+  isActive: boolean;
+}
+
 export interface Filters {
   search: string;
   category: Category | "all";
