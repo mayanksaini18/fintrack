@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,11 +23,14 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/transactions': 'Transactions',
   '/insights': 'Insights',
+  '/recurring': 'Recurring',
+  '/budgets': 'Budgets',
 };
 
 export default function Header() {
   const pathname = usePathname();
-  const title = pageTitles[pathname] ?? 'Finance Dashboard';
+  const title = pageTitles[pathname] ?? 'Kharcha';
+  const { isSignedIn } = useUser();
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-[52px] px-6 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200/60 dark:border-zinc-800/60 transition-colors duration-200">
@@ -73,10 +76,27 @@ export default function Header() {
         </Sheet>
         <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <ThemeToggle />
-        <RoleSwitcher />
-        <UserButton />
+        {isSignedIn ? (
+          <>
+            <RoleSwitcher />
+            <UserButton />
+          </>
+        ) : (
+          <>
+            <Link href="/sign-in">
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+                Sign in
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+                Sign up
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );
