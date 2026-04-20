@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Logo from '@/components/Logo';
 import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { UserButton, useUser } from '@clerk/nextjs';
@@ -47,9 +48,7 @@ export default function Header() {
           />
           <SheetContent side="left" className="p-0 w-[220px] bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60">
             <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
-              <div className="w-5 h-5 rounded-md bg-zinc-900 dark:bg-white flex items-center justify-center shrink-0">
-                <div className="w-2 h-2 rounded-sm bg-white dark:bg-zinc-950" />
-              </div>
+              <Logo size={22} />
               <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
             </div>
             <nav className="px-2.5 py-4 space-y-0.5">

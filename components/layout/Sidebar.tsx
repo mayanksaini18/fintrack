@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Logo from '@/components/Logo';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -20,9 +21,7 @@ export default function Sidebar() {
     <aside className="flex flex-col w-[220px] min-h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60 shrink-0 transition-colors duration-200">
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
-        <div className="w-5 h-5 rounded-md bg-zinc-900 dark:bg-white flex items-center justify-center shrink-0">
-          <div className="w-2 h-2 rounded-sm bg-white dark:bg-zinc-950" />
-        </div>
+        <Logo size={22} />
         <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
       </div>
 
