@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Kharcha",
   description: "Track expenses, set budgets, and get AI-powered financial insights.",
   manifest: "/manifest.json",
-  themeColor: "#18181b",
+  themeColor: "#10b981",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
