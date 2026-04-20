@@ -4,10 +4,13 @@ import SummaryCards from '@/components/dashboard/SummaryCards';
 import BalanceTrendChart from '@/components/dashboard/BalanceTrendChart';
 import SpendingBreakdownChart from '@/components/dashboard/SpendingBreakdownChart';
 import { useInitTransactions } from '@/lib/useInitTransactions';
-import { Loader2 } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { Loader2, Info } from 'lucide-react';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { loading } = useInitTransactions();
+  const { isSignedIn } = useUser();
 
   if (loading) {
     return (
@@ -19,6 +22,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
+      {!isSignedIn && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
+          <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <p className="text-sm text-amber-800 dark:text-amber-300">
+            You&apos;re viewing demo data.{' '}
+            <Link href="/sign-up" className="font-semibold underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-200">
+              Sign up
+            </Link>{' '}
+            to start tracking your own expenses.
+          </p>
+        </div>
+      )}
       <div>
         <p className="text-xs text-zinc-400">Your financial overview at a glance.</p>
       </div>
