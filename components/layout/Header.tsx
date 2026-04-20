@@ -47,7 +47,7 @@ export default function Header() {
               <div className="w-5 h-5 rounded-md bg-zinc-900 dark:bg-white flex items-center justify-center shrink-0">
                 <div className="w-2 h-2 rounded-sm bg-white dark:bg-zinc-950" />
               </div>
-              <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">FinTrack</span>
+              <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
             </div>
             <nav className="px-2.5 py-4 space-y-0.5">
               {navItems.map(({ href, label, icon: Icon }) => {
