@@ -1,6 +1,6 @@
 {
-  "name": "FinTrack",
-  "short_name": "FinTrack",
+  "name": "Kharcha",
+  "short_name": "Kharcha",
   "description": "Track expenses, set budgets, and get AI-powered financial insights",
   "start_url": "/dashboard",
   "display": "standalone",
