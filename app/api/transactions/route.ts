@@ -2,11 +2,14 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, asc, ilike, eq, and, SQL } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { mockTransactions } from '@/lib/mock-data';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) {
+    return Response.json(mockTransactions);
+  }
 
   const url = request.nextUrl;
   const search = url.searchParams.get('search') || '';
