@@ -27,7 +27,7 @@ export default function AuthLayout({
           <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg">
             <div className="w-4 h-4 rounded-md bg-white dark:bg-zinc-900" />
           </div>
-          <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">FinTrack</span>
+          <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
         </div>
 
         {/* Card */}
