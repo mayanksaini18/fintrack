@@ -1,3 +1,5 @@
+import Logo from '@/components/Logo';
+
 export default function AuthLayout({
   children,
 }: {
@@ -23,10 +25,8 @@ export default function AuthLayout({
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg">
-            <div className="w-4 h-4 rounded-md bg-white dark:bg-zinc-900" />
-          </div>
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <Logo size={40} />
           <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
         </div>
 
