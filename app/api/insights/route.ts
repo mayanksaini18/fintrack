@@ -2,12 +2,20 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { mockTransactions } from '@/lib/mock-data';
 
 export async function GET() {
   const { userId } = await auth();
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const allTx = await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.date));
+  let allTx;
+  if (!userId) {
+    allTx = mockTransactions.map((t) => ({
+      ...t,
+      date: new Date(t.date),
+    }));
+  } else {
+    allTx = await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.date));
+  }
 
   if (allTx.length === 0) {
     return Response.json({ empty: true });
