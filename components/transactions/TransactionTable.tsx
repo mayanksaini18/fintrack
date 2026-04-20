@@ -112,7 +112,7 @@ export default function TransactionTable() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fintrack-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `kharcha-transactions-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`);
