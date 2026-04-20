@@ -1,4 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#18181b"/>
-  <rect x="170" y="170" width="172" height="172" rx="40" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="translate(128, 110)">
+    <line x1="0" y1="30" x2="200" y2="30" stroke="white" stroke-width="30" stroke-linecap="round"/>
+    <line x1="0" y1="95" x2="200" y2="95" stroke="white" stroke-width="30" stroke-linecap="round"/>
+    <path d="M60 30 C110 30, 145 55, 145 95 C145 140, 110 170, 60 170" stroke="white" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <line x1="20" y1="280" x2="145" y2="130" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  </g>
 </svg>
