@@ -1,6 +1,6 @@
-# FinTrack — Finance Dashboard
+# Kharcha — Smart Expense Tracker
 
-A personal finance dashboard built as a frontend-only application with realistic mock data. Demonstrates React/Next.js fundamentals, component architecture, state management, role-based UI, and thoughtful design.
+A full-stack personal finance app to track expenses, set budgets, and get AI-powered insights. Built with Next.js 16, Neon Postgres, Clerk Auth, and Claude AI. Live at [kharcha.store](https://kharcha.store).
 
 ## Features
 
