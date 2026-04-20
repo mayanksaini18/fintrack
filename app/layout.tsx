@@ -7,14 +7,14 @@ import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import PWARegister from "@/components/PWARegister";
 
 export const metadata: Metadata = {
-  title: "FinTrack",
+  title: "Kharcha",
   description: "Track expenses, set budgets, and get AI-powered financial insights.",
   manifest: "/manifest.json",
   themeColor: "#18181b",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "FinTrack",
+    title: "Kharcha",
   },
   icons: {
     icon: "/icon-192.svg",
