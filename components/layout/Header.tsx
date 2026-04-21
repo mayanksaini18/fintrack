@@ -8,7 +8,7 @@ import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
-import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
+import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target, MessageSquareText } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { UserButton, useUser } from '@clerk/nextjs';
 
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/recurring', label: 'Recurring', icon: CalendarClock },
   { href: '/budgets', label: 'Budgets', icon: Target },
   { href: '/insights', label: 'Insights', icon: TrendingUp },
+  { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -26,6 +27,7 @@ const pageTitles: Record<string, string> = {
   '/insights': 'Insights',
   '/recurring': 'Recurring',
   '/budgets': 'Budgets',
+  '/ai-chat': 'AI Chat',
 };
 
 export default function Header() {

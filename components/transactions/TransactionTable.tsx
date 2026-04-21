@@ -294,7 +294,7 @@ export default function TransactionTable() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Amount ($)</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Amount (₹)</label>
               <Input
                 type="number"
                 min={0.01}

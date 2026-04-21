@@ -37,7 +37,7 @@ function buildQuery(filters: Filters): string {
 
 export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   transactions: [],
-  role: 'viewer',
+  role: 'admin',
   filters: defaultFilters,
   loading: true,
 
