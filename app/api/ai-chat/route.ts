@@ -108,10 +108,12 @@ export async function POST(request: Request) {
         transactions: parsed,
         filename: file.name,
       });
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('AI Chat parse error:', msg);
       return Response.json({
         role: 'assistant',
-        content: "Sorry, I couldn't parse that file. Make sure it's a valid CSV, Excel, PDF, or text file with transaction data.",
+        content: `Sorry, I couldn't parse that file. Error: ${msg}`,
         transactions: null,
       });
     }
