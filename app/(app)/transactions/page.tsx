@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import TransactionFilters from '@/components/transactions/TransactionFilters';
 import TransactionTable from '@/components/transactions/TransactionTable';
+import SmartImportDialog from '@/components/transactions/SmartImportDialog';
 import { useInitTransactions } from '@/lib/useInitTransactions';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Sparkles } from 'lucide-react';
 
 export default function TransactionsPage() {
   const { loading } = useInitTransactions();
+  const [showSmartImport, setShowSmartImport] = useState(false);
 
   if (loading) {
     return (
@@ -18,9 +22,21 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
-      <p className="text-xs text-zinc-400">Browse, filter, and manage your transactions.</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-zinc-400">Browse, filter, and manage your transactions.</p>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setShowSmartImport(true)}
+          className="h-8 text-xs gap-1.5 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Smart Import
+        </Button>
+      </div>
       <TransactionFilters />
       <TransactionTable />
+      <SmartImportDialog open={showSmartImport} onClose={() => setShowSmartImport(false)} />
     </div>
   );
 }
