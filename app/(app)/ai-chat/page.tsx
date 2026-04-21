@@ -158,15 +158,18 @@ export default function AIChatPage() {
       description: t.description,
     }));
 
-    await importTransactions(mapped);
-    toast.success(`Imported ${selected.length} transactions`);
+    try {
+      await importTransactions(mapped);
+      toast.success(`Imported ${selected.length} transactions`);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId ? { ...m, content: m.content + `\n\n*${selected.length} transactions imported successfully.*`, transactions: null } : m
+        )
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import failed');
+    }
     setImportingId(null);
-
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === msgId ? { ...m, content: m.content + `\n\n*${selected.length} transactions imported successfully.*`, transactions: null } : m
-      )
-    );
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

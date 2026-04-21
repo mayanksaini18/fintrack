@@ -16,17 +16,24 @@ export async function POST(request: NextRequest) {
     description: string;
   }>;
 
+  const VALID_CATEGORIES = ['Salary','Freelance','Food','Transport','Entertainment','Shopping','Healthcare','Utilities','Rent','Other'] as const;
+
   const values = items.map((t) => ({
     id: crypto.randomUUID(),
     userId,
     date: new Date(t.date),
-    amount: t.amount,
-    category: t.category as typeof transactions.category.enumValues[number],
-    type: t.type as 'income' | 'expense',
-    description: t.description,
+    amount: Number(t.amount),
+    category: (VALID_CATEGORIES.includes(t.category as typeof VALID_CATEGORIES[number]) ? t.category : 'Other') as typeof transactions.category.enumValues[number],
+    type: (t.type === 'income' ? 'income' : 'expense') as 'income' | 'expense',
+    description: String(t.description),
   }));
 
-  await db.insert(transactions).values(values);
+  try {
+    await db.insert(transactions).values(values);
+  } catch (err) {
+    console.error('Bulk insert error:', err);
+    return Response.json({ error: 'Failed to insert transactions' }, { status: 500 });
+  }
 
   return Response.json({ inserted: values.length }, { status: 201 });
 }

@@ -85,11 +85,15 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   },
 
   importTransactions: async (txns) => {
-    await fetch('/api/transactions/bulk', {
+    const res = await fetch('/api/transactions/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transactions: txns }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Import failed');
+    }
     await get().fetchTransactions();
   },
 }));

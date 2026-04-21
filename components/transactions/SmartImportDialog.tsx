@@ -104,10 +104,14 @@ export default function SmartImportDialog({ open, onClose }: Props) {
       description: t.description,
     }));
 
-    await importTransactions(txns);
-    toast.success(`Imported ${selected.length} transactions from ${filename}`);
+    try {
+      await importTransactions(txns);
+      toast.success(`Imported ${selected.length} transactions from ${filename}`);
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import failed');
+    }
     setImporting(false);
-    handleClose();
   }
 
   function handleClose() {
