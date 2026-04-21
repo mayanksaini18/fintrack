@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
       const truncated = text.slice(0, 15000);
       const { text: result } = await generateText({
-        model: anthropic('claude-sonnet-4.5'),
+        model: anthropic('claude-sonnet-4-5'),
         system: PARSE_PROMPT,
         prompt: `Parse transactions from this ${file.name} document:\n\n${truncated}`,
       });
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
     : '\n\nThe user has no transactions yet.';
 
   const { text } = await generateText({
-    model: anthropic('claude-sonnet-4.5'),
+    model: anthropic('claude-sonnet-4-5'),
     system: CHAT_PROMPT + txSummary,
     prompt: message,
   });

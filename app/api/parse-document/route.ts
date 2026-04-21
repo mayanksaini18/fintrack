@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     const truncated = text.slice(0, 15000);
 
     const { text: result } = await generateText({
-      model: anthropic('claude-sonnet-4.5'),
+      model: anthropic('claude-sonnet-4-5'),
       system: SYSTEM_PROMPT,
       prompt: `Parse transactions from this ${file.name} document:\n\n${truncated}`,
     });
