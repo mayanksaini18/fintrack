@@ -19,7 +19,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col w-[220px] min-h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60 shrink-0 transition-colors duration-200">
+    <aside className="hidden lg:flex flex-col w-[220px] min-h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60 shrink-0 transition-colors duration-200">
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
         <Logo size={22} />
