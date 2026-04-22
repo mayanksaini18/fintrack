@@ -1,5 +1,6 @@
 import { generateText } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { AI_MODEL } from '@/lib/ai';
+
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -31,7 +32,7 @@ export async function GET() {
   }));
 
   const { text } = await generateText({
-    model: anthropic('claude-sonnet-4-5'),
+    model: AI_MODEL,
     system: `You are a personal finance advisor analyzing a user's transaction data.
 Give concise, actionable insights in plain language. Use Indian Rupee (₹) for amounts.
 Format your response as 4-6 bullet points using markdown. Each bullet should be a specific,

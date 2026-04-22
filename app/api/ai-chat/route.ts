@@ -1,5 +1,6 @@
 import { generateText } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { AI_MODEL } from '@/lib/ai';
+
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
 
       const truncated = text.slice(0, 15000);
       const { text: result } = await generateText({
-        model: anthropic('claude-sonnet-4-5'),
+        model: AI_MODEL,
         system: PARSE_PROMPT,
         prompt: `Parse transactions from this ${file.name} document:\n\n${truncated}`,
       });
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
     : '\n\nThe user has no transactions yet.';
 
   const { text } = await generateText({
-    model: anthropic('claude-sonnet-4-5'),
+    model: AI_MODEL,
     system: CHAT_PROMPT + txSummary,
     prompt: message,
   });
