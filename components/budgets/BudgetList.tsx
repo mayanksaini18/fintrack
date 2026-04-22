@@ -96,9 +96,9 @@ export default function BudgetList() {
     <div className="space-y-6">
       {/* Overall summary */}
       {budgets.length > 0 && (
-        <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-5">
+        <div className="rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:glass p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Overall Budget</span>
+            <span className="text-sm font-medium text-zinc-700 dark:text-white/80">Overall Budget</span>
             <span className={`text-sm font-semibold ${overallPct > 90 ? 'text-rose-600' : overallPct > 70 ? 'text-amber-600' : 'text-emerald-600'}`}>
               {overallPct}%
             </span>
@@ -123,7 +123,7 @@ export default function BudgetList() {
         <Button
           size="sm"
           onClick={() => setShowAdd(true)}
-          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white"
+          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
         >
           <Plus className="w-3.5 h-3.5" />
           Set Budget
@@ -151,16 +151,16 @@ export default function BudgetList() {
                 key={budget.id}
                 className={`rounded-xl border p-4 transition-colors ${
                   isDanger
-                    ? 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20'
+                    ? 'border-rose-200 dark:border-rose-500/20 bg-rose-50/50 dark:bg-rose-500/[0.06]'
                     : isWarning
-                    ? 'border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20'
-                    : 'border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900'
+                    ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-500/[0.06]'
+                    : 'border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{CATEGORY_ICONS[budget.category] || '📦'}</span>
-                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{budget.category}</span>
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white/90">{budget.category}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     {isDanger && <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />}
@@ -186,7 +186,7 @@ export default function BudgetList() {
                 <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-400' : 'bg-violet-500'
                     }`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
