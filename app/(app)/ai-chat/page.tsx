@@ -254,9 +254,9 @@ export default function AIChatPage() {
         )}
       </div>
 
-      <div className="border-t border-zinc-200 dark:border-zinc-800 px-1 py-3">
+      <div className="border-t border-zinc-200 dark:border-white/[0.06] px-1 py-3">
         {selectedFile && (
-          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20">
             <FileText className="w-4 h-4 text-violet-500" />
             <span className="text-xs text-violet-700 dark:text-violet-300 truncate flex-1">{selectedFile.name}</span>
             <button onClick={() => setSelectedFile(null)} className="text-violet-400 hover:text-violet-600">
@@ -293,13 +293,13 @@ export default function AIChatPage() {
             placeholder={selectedFile ? 'Press Enter to upload...' : 'Ask about your finances or upload a document...'}
             rows={1}
             disabled={loading}
-            className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 disabled:opacity-50"
+            className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm px-4 py-2.5 text-sm text-zinc-900 dark:text-white/85 placeholder:text-zinc-400 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/40 disabled:opacity-50"
           />
           <Button
             size="icon"
             onClick={handleSend}
             disabled={loading || (!input.trim() && !selectedFile)}
-            className="h-9 w-9 shrink-0 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900"
+            className="h-9 w-9 shrink-0 bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_14px_rgba(139,92,246,0.4)]"
           >
             <Send className="w-4 h-4" />
           </Button>
