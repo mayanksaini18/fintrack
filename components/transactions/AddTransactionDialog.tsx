@@ -91,25 +91,25 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <DialogContent className="sm:max-w-sm dark:bg-[#0f0f14] dark:border-white/[0.08] dark:backdrop-blur-2xl">
         <DialogHeader>
-          <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Add Transaction</DialogTitle>
+          <DialogTitle className="text-sm font-semibold dark:text-white">Add Transaction</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3 py-1">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Description</label>
+            <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Description</label>
             <Input
               placeholder="e.g. Grocery run"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
             />
             {errors.description && <p className="text-[11px] text-rose-500">{errors.description}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Amount (₹)</label>
+            <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Amount (₹)</label>
             <Input
               type="number"
               placeholder="0.00"
@@ -117,16 +117,16 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
               step={0.01}
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
             />
             {errors.amount && <p className="text-[11px] text-rose-500">{errors.amount}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Category</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Category</label>
               <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v as Category })}>
-                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -139,9 +139,9 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Type</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Type</label>
               <Select value={form.type} onValueChange={(v) => v && setForm({ ...form, type: v as TransactionType })}>
-                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -154,22 +154,22 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Date</label>
+            <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Date</label>
             <Input
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
             />
             {errors.date && <p className="text-[11px] text-rose-500">{errors.date}</p>}
           </div>
         </div>
 
         <DialogFooter className="gap-2 mt-1">
-          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/60 dark:hover:text-white">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_14px_rgba(139,92,246,0.35)]">
             Add
           </Button>
         </DialogFooter>
