@@ -127,7 +127,7 @@ export default function RecurringList() {
       {/* Summary bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 text-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/[0.06] dark:backdrop-blur-sm text-sm border dark:border-white/[0.08]">
             <CalendarClock className="w-4 h-4 text-zinc-500" />
             <span className="text-zinc-600 dark:text-zinc-400">Monthly net:</span>
             <span className={`font-semibold ${totalMonthly >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
@@ -144,7 +144,7 @@ export default function RecurringList() {
             size="sm"
             onClick={handleProcess}
             disabled={processing}
-            className="h-8 text-xs gap-1.5 border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            className="h-8 text-xs gap-1.5 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/60 dark:hover:text-white backdrop-blur-sm"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${processing ? 'animate-spin' : ''}`} />
             Process Due
@@ -152,7 +152,7 @@ export default function RecurringList() {
           <Button
             size="sm"
             onClick={() => setShowAdd(true)}
-            className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white"
+            className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Recurring
@@ -176,15 +176,15 @@ export default function RecurringList() {
                 key={item.id}
                 className={`flex items-center justify-between gap-4 px-4 py-3 rounded-xl border transition-colors ${
                   item.isActive
-                    ? 'bg-white dark:bg-zinc-900 border-zinc-200/80 dark:border-zinc-800/80'
-                    : 'bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200/40 dark:border-zinc-800/40 opacity-60'
+                    ? 'bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm border-zinc-200/80 dark:border-white/[0.08] dark:hover:border-white/[0.14]'
+                    : 'bg-zinc-50 dark:bg-white/[0.02] border-zinc-200/40 dark:border-white/[0.04] opacity-50'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                      <p className="text-sm font-medium text-zinc-900 dark:text-white/90 truncate">
                         {item.description}
                       </p>
                       <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 shrink-0 ${CATEGORY_COLORS[item.category] || ''}`}>
