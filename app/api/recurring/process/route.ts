@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { recurringTransactions, transactions } from '@/lib/db/schema';
 import { eq, and, lte } from 'drizzle-orm';
-import { auth } from '@clerk/nextjs/server';
+import type { NextRequest } from 'next/server';
 
 function getNextDate(current: Date, frequency: string): Date {
   const next = new Date(current);
@@ -11,9 +11,12 @@ function getNextDate(current: Date, frequency: string): Date {
   return next;
 }
 
-export async function POST() {
-  const { userId } = await auth();
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+// Called by Vercel Cron daily — secured with CRON_SECRET header
+export async function GET(request: NextRequest) {
+  const secret = request.headers.get('authorization');
+  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const now = new Date();
 
@@ -22,7 +25,6 @@ export async function POST() {
     .from(recurringTransactions)
     .where(
       and(
-        eq(recurringTransactions.userId, userId),
         eq(recurringTransactions.isActive, true),
         lte(recurringTransactions.nextDueDate, now)
       )
@@ -36,7 +38,7 @@ export async function POST() {
     while (dueDate <= now) {
       await db.insert(transactions).values({
         id: crypto.randomUUID(),
-        userId,
+        userId: item.userId,
         date: dueDate,
         amount: item.amount,
         category: item.category,
@@ -53,5 +55,6 @@ export async function POST() {
       .where(eq(recurringTransactions.id, item.id));
   }
 
+  console.log(`Recurring cron: processed ${dueItems.length} items, created ${created} transactions`);
   return Response.json({ processed: dueItems.length, created });
 }
