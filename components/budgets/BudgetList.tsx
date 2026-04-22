@@ -42,9 +42,18 @@ export default function BudgetList() {
 
   const fetchBudgets = useCallback(async () => {
     const res = await fetch('/api/budgets');
-    const data = await res.json();
+    const data: Budget[] = await res.json();
     setBudgets(data);
     setLoading(false);
+    const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
+    if (overBudget.length > 0) {
+      toast.error(
+        overBudget.length === 1
+          ? `${overBudget[0].category} budget exceeded this month`
+          : `${overBudget.length} budgets exceeded this month`,
+        { id: 'budget-overspend' }
+      );
+    }
   }, []);
 
   useEffect(() => { fetchBudgets(); }, [fetchBudgets]);
