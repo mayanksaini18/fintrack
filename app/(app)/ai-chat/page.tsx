@@ -150,15 +150,19 @@ export default function AIChatPage() {
     if (selected.length === 0) return;
 
     setImportingId(msgId);
-    const mapped: Omit<Transaction, 'id'>[] = selected.map((t) => ({
-      date: new Date(t.date).toISOString(),
-      amount: t.amount,
-      type: t.type,
-      category: t.category as Transaction['category'],
-      description: t.description,
-    }));
-
     try {
+      const mapped: Omit<Transaction, 'id'>[] = selected.map((t) => {
+        const d = new Date(t.date);
+        if (isNaN(d.getTime())) throw new Error(`Invalid date: "${t.date}"`);
+        return {
+          date: d.toISOString(),
+          amount: Math.round(Number(t.amount)),
+          type: t.type,
+          category: t.category as Transaction['category'],
+          description: t.description,
+        };
+      });
+
       await importTransactions(mapped);
       toast.success(`Imported ${selected.length} transactions`);
       setMessages((prev) =>
@@ -168,8 +172,9 @@ export default function AIChatPage() {
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImportingId(null);
     }
-    setImportingId(null);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
