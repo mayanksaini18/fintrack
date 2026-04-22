@@ -150,7 +150,7 @@ export default function TransactionTable() {
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900">
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:glass dark:border-violet-500/20 text-white dark:text-white">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-4 h-4" />
             <span className="text-sm font-medium">{selected.size} selected</span>
@@ -159,7 +159,7 @@ export default function TransactionTable() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-xs text-zinc-400 dark:text-zinc-500 hover:text-white dark:hover:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              className="h-7 text-xs text-zinc-400 dark:text-white/40 hover:text-white dark:hover:text-white hover:bg-zinc-800 dark:hover:bg-white/10"
               onClick={() => setSelected(new Set())}
             >
               Cancel
@@ -180,7 +180,7 @@ export default function TransactionTable() {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-normal"
+          className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white font-normal backdrop-blur-sm"
           onClick={exportCSV}
           disabled={transactions.length === 0}
         >
@@ -192,7 +192,7 @@ export default function TransactionTable() {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-normal"
+              className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white font-normal backdrop-blur-sm"
               onClick={() => setImportOpen(true)}
             >
               <FileUp className="w-3.5 h-3.5" />
@@ -200,7 +200,7 @@ export default function TransactionTable() {
             </Button>
             <Button
               size="sm"
-              className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white font-medium rounded-lg px-3"
+              className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white font-medium rounded-lg px-3 dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
               onClick={() => setAddOpen(true)}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -210,11 +210,11 @@ export default function TransactionTable() {
         )}
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 overflow-hidden transition-colors duration-200">
+      <div className="bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] overflow-hidden transition-colors duration-200">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-zinc-100 dark:border-zinc-800 hover:bg-transparent">
+              <TableRow className="border-zinc-100 dark:border-white/[0.05] hover:bg-transparent">
                 {isAdmin && (
                   <TableHead className="h-10 w-10 pl-3">
                     <input
@@ -226,11 +226,11 @@ export default function TransactionTable() {
                     />
                   </TableHead>
                 )}
-                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-28">Date</TableHead>
-                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10">Description</TableHead>
-                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-36">Category</TableHead>
-                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-24">Type</TableHead>
-                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-28 text-right">Amount</TableHead>
+                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-white/30 uppercase tracking-widest h-10 w-28">Date</TableHead>
+                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-white/30 uppercase tracking-widest h-10">Description</TableHead>
+                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-white/30 uppercase tracking-widest h-10 w-36">Category</TableHead>
+                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-white/30 uppercase tracking-widest h-10 w-24">Type</TableHead>
+                <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-white/30 uppercase tracking-widest h-10 w-28 text-right">Amount</TableHead>
                 {isAdmin && <TableHead className="h-10 w-16" />}
               </TableRow>
             </TableHeader>
@@ -250,8 +250,8 @@ export default function TransactionTable() {
                   <TableRow
                     key={tx.id}
                     className={cn(
-                      'border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors',
-                      selected.has(tx.id) && 'bg-zinc-50 dark:bg-zinc-800/60'
+                      'border-zinc-100 dark:border-white/[0.05] hover:bg-zinc-50/60 dark:hover:bg-white/[0.03] transition-colors',
+                      selected.has(tx.id) && 'bg-zinc-50 dark:bg-violet-500/10'
                     )}
                   >
                     {isAdmin && (
@@ -264,10 +264,10 @@ export default function TransactionTable() {
                         />
                       </TableCell>
                     )}
-                    <TableCell className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums py-3.5">
+                    <TableCell className="text-xs text-zinc-400 dark:text-white/35 tabular-nums py-3.5">
                       {formatDate(tx.date)}
                     </TableCell>
-                    <TableCell className="text-sm font-medium text-zinc-800 dark:text-zinc-200 max-w-xs truncate py-3.5">
+                    <TableCell className="text-sm font-medium text-zinc-800 dark:text-white/85 max-w-xs truncate py-3.5">
                       {tx.description}
                     </TableCell>
                     <TableCell className="py-3.5">
