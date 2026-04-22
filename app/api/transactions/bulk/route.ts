@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     id: crypto.randomUUID(),
     userId,
     date: new Date(t.date),
-    amount: Number(t.amount),
+    amount: Math.round(Number(t.amount)),
     category: (VALID_CATEGORIES.includes(t.category as typeof VALID_CATEGORIES[number]) ? t.category : 'Other') as typeof transactions.category.enumValues[number],
     type: (t.type === 'income' ? 'income' : 'expense') as 'income' | 'expense',
     description: String(t.description),
