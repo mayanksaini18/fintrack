@@ -40,12 +40,12 @@ export default function TransactionFilters() {
           placeholder="Search transactions..."
           value={filters.search}
           onChange={(e) => setFilter('search', e.target.value)}
-          className="pl-9 h-8 text-sm border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-zinc-400"
+          className="pl-9 h-8 text-sm border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-violet-500/50 dark:focus-visible:ring-violet-500/40 backdrop-blur-sm"
         />
       </div>
 
       <Select value={filters.category} onValueChange={(v) => setFilter('category', v ?? 'all')}>
-        <SelectTrigger className="w-38 h-8 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100">
+        <SelectTrigger className="w-38 h-8 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white/80 backdrop-blur-sm">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
@@ -57,7 +57,7 @@ export default function TransactionFilters() {
       </Select>
 
       <Select value={filters.type} onValueChange={(v) => setFilter('type', v ?? 'all')}>
-        <SelectTrigger className="w-32 h-8 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100">
+        <SelectTrigger className="w-32 h-8 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white/80 backdrop-blur-sm">
           <SelectValue placeholder="Type" />
         </SelectTrigger>
         <SelectContent>
@@ -68,7 +68,7 @@ export default function TransactionFilters() {
       </Select>
 
       <Select value={filters.sortBy} onValueChange={(v) => setFilter('sortBy', v ?? 'date')}>
-        <SelectTrigger className="w-28 h-8 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 dark:text-zinc-100">
+        <SelectTrigger className="w-28 h-8 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white/80 backdrop-blur-sm">
           <SelectValue placeholder="Sort" />
         </SelectTrigger>
         <SelectContent>
@@ -80,7 +80,7 @@ export default function TransactionFilters() {
       <Button
         variant="outline"
         size="sm"
-        className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-normal"
+        className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white font-normal backdrop-blur-sm"
         onClick={() => setFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
       >
         <ArrowUpDown className="w-3 h-3" />
