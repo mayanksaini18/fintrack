@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useFinanceStore } from '@/lib/store';
-import { getMonthlyData, formatCurrency } from '@/lib/utils';
+import { getMonthlyData, getWeeklyData, formatCurrency } from '@/lib/utils';
 import { useTheme } from '@/components/layout/ThemeProvider';
 import {
   ResponsiveContainer,
@@ -12,6 +13,14 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
+
+type Range = '1m' | '6m' | '1y';
+
+const RANGES: { label: string; value: Range }[] = [
+  { label: '1M', value: '1m' },
+  { label: '6M', value: '6m' },
+  { label: '1Y', value: '1y' },
+];
 
 interface TooltipPayloadItem {
   name: string;
@@ -55,49 +64,72 @@ const LINES = [
 export default function BalanceTrendChart() {
   const { transactions } = useFinanceStore();
   const { theme } = useTheme();
-  const monthlyData = getMonthlyData(transactions);
+  const [range, setRange] = useState<Range>('6m');
+
+  const chartData =
+    range === '1m'
+      ? getWeeklyData(transactions)
+      : getMonthlyData(transactions, range === '1y' ? 12 : 6);
 
   const isDark = theme === 'dark';
   const axisColor = isDark ? '#52525b' : '#a1a1aa';
   const gridColor = isDark ? '#27272a' : '#f4f4f5';
+
+  const rangeLabel = range === '1m' ? 'Last 4 weeks' : range === '6m' ? 'Last 6 months' : 'Last 12 months';
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-5 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
       <div className="flex items-start justify-between mb-1">
         <div>
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Balance Trend</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Last 6 months</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{rangeLabel}</p>
         </div>
-        <div className="flex items-center gap-4">
-          {LINES.map((l) => (
-            <div key={l.key} className="flex items-center gap-1.5">
-              <div
-                className="w-3 h-0.5 rounded-full"
-                style={{ backgroundColor: isDark ? l.colorDark : l.colorLight }}
-              />
-              <span className="text-[11px] text-zinc-400 dark:text-zinc-500">{l.name}</span>
-            </div>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {LINES.map((l) => (
+              <div key={l.key} className="hidden sm:flex items-center gap-1.5">
+                <div
+                  className="w-3 h-0.5 rounded-full"
+                  style={{ backgroundColor: isDark ? l.colorDark : l.colorLight }}
+                />
+                <span className="text-[11px] text-zinc-400 dark:text-zinc-500">{l.name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 p-0.5 gap-0.5">
+            {RANGES.map((r) => (
+              <button
+                key={r.value}
+                onClick={() => setRange(r.value)}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                  range === r.value
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="mt-5">
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={monthlyData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="month"
               tick={{ fontSize: 11, fill: axisColor }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v: string) => v.split(' ')[0]}
             />
             <YAxis
               tick={{ fontSize: 11, fill: axisColor }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-              width={38}
+              tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+              width={42}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: isDark ? '#3f3f46' : '#e4e4e7', strokeWidth: 1 }} />
             {LINES.map((l) => (
