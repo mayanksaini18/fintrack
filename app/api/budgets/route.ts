@@ -48,15 +48,20 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await request.json();
-  const id = crypto.randomUUID();
+  try {
+    const body = await request.json();
+    const id = crypto.randomUUID();
 
-  await db.insert(budgets).values({
-    id,
-    userId,
-    category: body.category,
-    monthlyLimit: body.monthlyLimit,
-  });
+    await db.insert(budgets).values({
+      id,
+      userId,
+      category: body.category,
+      monthlyLimit: body.monthlyLimit,
+    });
 
-  return Response.json({ id, ...body, spent: 0 }, { status: 201 });
+    return Response.json({ id, ...body, spent: 0 }, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/budgets:', err);
+    return Response.json({ error: 'Failed to create budget' }, { status: 500 });
+  }
 }

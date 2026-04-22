@@ -11,22 +11,27 @@ export async function PUT(
   const { userId } = await auth();
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { id } = await params;
-  const body = await request.json();
+  try {
+    const { id } = await params;
+    const body = await request.json();
 
-  const updates: Record<string, unknown> = {};
-  if (body.date) updates.date = new Date(body.date);
-  if (body.amount !== undefined) updates.amount = body.amount;
-  if (body.category) updates.category = body.category;
-  if (body.type) updates.type = body.type;
-  if (body.description) updates.description = body.description;
+    const updates: Record<string, unknown> = {};
+    if (body.date) updates.date = new Date(body.date);
+    if (body.amount !== undefined) updates.amount = body.amount;
+    if (body.category) updates.category = body.category;
+    if (body.type) updates.type = body.type;
+    if (body.description) updates.description = body.description;
 
-  await db
-    .update(transactions)
-    .set(updates)
-    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+    await db
+      .update(transactions)
+      .set(updates)
+      .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
 
-  return Response.json({ id, ...body });
+    return Response.json({ id, ...body });
+  } catch (err) {
+    console.error('PUT /api/transactions/[id]:', err);
+    return Response.json({ error: 'Failed to update transaction' }, { status: 500 });
+  }
 }
 
 export async function DELETE(
@@ -36,10 +41,15 @@ export async function DELETE(
   const { userId } = await auth();
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { id } = await params;
-  await db
-    .delete(transactions)
-    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+  try {
+    const { id } = await params;
+    await db
+      .delete(transactions)
+      .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
 
-  return Response.json({ deleted: id });
+    return Response.json({ deleted: id });
+  } catch (err) {
+    console.error('DELETE /api/transactions/[id]:', err);
+    return Response.json({ error: 'Failed to delete transaction' }, { status: 500 });
+  }
 }

@@ -33,22 +33,27 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await request.json();
-  const id = crypto.randomUUID();
-  const startDate = new Date(body.startDate);
+  try {
+    const body = await request.json();
+    const id = crypto.randomUUID();
+    const startDate = new Date(body.startDate);
 
-  await db.insert(recurringTransactions).values({
-    id,
-    userId,
-    amount: body.amount,
-    category: body.category,
-    type: body.type,
-    description: body.description,
-    frequency: body.frequency,
-    startDate,
-    nextDueDate: startDate,
-    isActive: true,
-  });
+    await db.insert(recurringTransactions).values({
+      id,
+      userId,
+      amount: body.amount,
+      category: body.category,
+      type: body.type,
+      description: body.description,
+      frequency: body.frequency,
+      startDate,
+      nextDueDate: startDate,
+      isActive: true,
+    });
 
-  return Response.json({ id, ...body }, { status: 201 });
+    return Response.json({ id, ...body }, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/recurring:', err);
+    return Response.json({ error: 'Failed to create recurring transaction' }, { status: 500 });
+  }
 }
