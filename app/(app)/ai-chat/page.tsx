@@ -187,8 +187,10 @@ export default function AIChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-52px)] max-w-3xl mx-auto">
       <div className="flex items-center gap-2 py-3 px-1">
-        <Sparkles className="w-4 h-4 text-violet-500" />
-        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kharcha AI</h1>
+        <div className="w-7 h-7 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+        </div>
+        <h1 className="text-xl font-semibold text-zinc-900 dark:bg-gradient-to-r dark:from-white dark:via-violet-100 dark:to-violet-300 dark:bg-clip-text dark:text-transparent">Kharcha AI</h1>
         <Badge variant="secondary" className="text-[10px]">Beta</Badge>
       </div>
 
@@ -202,10 +204,10 @@ export default function AIChatPage() {
             )}
             <div className={`max-w-[85%] space-y-3 ${msg.role === 'user' ? 'items-end' : ''}`}>
               <div
-                className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-br-sm'
-                    : 'bg-zinc-100 dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 rounded-bl-sm'
+                    ? 'bg-zinc-900 dark:bg-violet-600/25 dark:border dark:border-violet-500/20 text-white dark:text-violet-100 rounded-br-sm'
+                    : 'bg-zinc-100 dark:bg-white/[0.05] dark:border dark:border-white/[0.08] dark:backdrop-blur-sm text-zinc-800 dark:text-white/85 rounded-bl-sm'
                 }`}
               >
                 {msg.role === 'user' && msg.file && (
@@ -233,8 +235,8 @@ export default function AIChatPage() {
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="w-7 h-7 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center shrink-0 mt-0.5">
-                <User className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+              <div className="w-7 h-7 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                <User className="w-4 h-4 text-violet-400" />
               </div>
             )}
           </div>
@@ -245,7 +247,7 @@ export default function AIChatPage() {
             <div className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4 text-violet-600 dark:text-violet-400" />
             </div>
-            <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-xl rounded-bl-sm px-4 py-3">
+            <div className="bg-zinc-100 dark:bg-white/[0.05] dark:border dark:border-white/[0.08] dark:backdrop-blur-sm rounded-2xl rounded-bl-sm px-4 py-3">
               <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
             </div>
           </div>
