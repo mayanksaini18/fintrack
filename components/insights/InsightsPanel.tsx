@@ -78,7 +78,7 @@ interface InsightsData {
   }>;
 }
 
-const BAR_COLORS = ['bg-zinc-900 dark:bg-zinc-100', 'bg-zinc-500', 'bg-zinc-300 dark:bg-zinc-600'];
+const BAR_COLORS = ['bg-zinc-900 dark:bg-violet-500', 'bg-zinc-500 dark:bg-violet-400/60', 'bg-zinc-300 dark:bg-violet-300/30'];
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -89,15 +89,15 @@ interface ChartTooltipProps {
 function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-3 min-w-[140px]">
-      <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest mb-2">{label}</p>
+    <div className="bg-white dark:glass-strong rounded-xl shadow-lg dark:shadow-black/40 p-3 min-w-[140px]">
+      <p className="text-[11px] font-medium text-zinc-400 dark:text-white/35 uppercase tracking-widest mb-2">{label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex justify-between items-center gap-4 mb-1 last:mb-0">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{entry.name}</span>
+            <span className="text-xs text-zinc-500 dark:text-white/50">{entry.name}</span>
           </div>
-          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+          <span className="text-xs font-semibold text-zinc-900 dark:text-white tabular-nums">
             {formatCurrency(entry.value)}
           </span>
         </div>
@@ -144,12 +144,12 @@ export default function InsightsPanel() {
   const expenseChange = lastMonth?.expenses > 0 ? ((currentMonth.expenses - lastMonth.expenses) / lastMonth.expenses) * 100 : 0;
   const savingsTrend = currentMonth.savingsRate - (lastMonth?.savingsRate ?? 0);
 
-  const axisColor = isDark ? '#52525b' : '#a1a1aa';
-  const gridColor = isDark ? '#27272a' : '#f4f4f5';
+  const axisColor = isDark ? 'rgba(255,255,255,0.25)' : '#a1a1aa';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : '#f4f4f5';
 
-  const cardBase = 'bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 px-5 py-4 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2';
-  const labelBase = 'text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3';
-  const valueBase = 'text-[26px] font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums leading-none tracking-tight';
+  const cardBase = 'bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] px-5 py-4 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2 dark:hover:border-white/[0.14]';
+  const labelBase = 'text-[11px] font-medium text-zinc-400 dark:text-white/35 uppercase tracking-widest mb-3';
+  const valueBase = 'text-[26px] font-semibold text-zinc-900 dark:text-white tabular-nums leading-none tracking-tight';
 
   const highestSpendDay = [...weekdaySpending].sort((a, b) => b.avg - a.avg)[0];
   const lowestSpendDay = [...weekdaySpending].filter(d => d.count > 0).sort((a, b) => a.avg - b.avg)[0];
