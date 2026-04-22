@@ -10,14 +10,17 @@ export const metadata: Metadata = {
   title: "Kharcha",
   description: "Track expenses, set budgets, and get AI-powered financial insights.",
   manifest: "/manifest.json",
-  themeColor: "#10b981",
+  themeColor: "#0ea5e9",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Kharcha",
   },
   icons: {
-    icon: "/icon-192.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
     apple: "/icon-192.svg",
   },
 };

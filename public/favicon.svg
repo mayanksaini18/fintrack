@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#0ea5e9"/>
+  <!-- wallet body -->
+  <rect x="3" y="9" width="26" height="18" rx="3" fill="#0ea5e9"/>
+  <!-- top flap -->
+  <rect x="3" y="9" width="26" height="7" rx="3" fill="#0284c7"/>
+  <rect x="3" y="13" width="26" height="3" fill="#0284c7"/>
+  <!-- magnetic stripe -->
+  <line x1="5" y1="18" x2="20" y2="18" stroke="#0369a1" stroke-width="1.5"/>
+  <!-- coin pocket outer -->
+  <circle cx="24" cy="22" r="5" fill="#0284c7"/>
+  <!-- coin pocket inner -->
+  <circle cx="24" cy="22" r="3.5" fill="#0369a1"/>
+  <!-- rupee symbol -->
+  <text x="24" y="24.5" font-family="system-ui,sans-serif" font-size="4.5" font-weight="800" fill="#f59e0b" text-anchor="middle">&#x20B9;</text>
+  <!-- shine -->
+  <line x1="5" y1="21" x2="14" y2="21" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-opacity="0.25"/>
+</svg>
