@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { transactionUpdateSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function PUT(
@@ -14,20 +15,22 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const parsed = transactionUpdateSchema.safeParse(body);
+    if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
 
     const updates: Record<string, unknown> = {};
-    if (body.date) updates.date = new Date(body.date);
-    if (body.amount !== undefined) updates.amount = body.amount;
-    if (body.category) updates.category = body.category;
-    if (body.type) updates.type = body.type;
-    if (body.description) updates.description = body.description;
+    if (parsed.data.date) updates.date = new Date(parsed.data.date);
+    if (parsed.data.amount !== undefined) updates.amount = parsed.data.amount;
+    if (parsed.data.category) updates.category = parsed.data.category;
+    if (parsed.data.type) updates.type = parsed.data.type;
+    if (parsed.data.description) updates.description = parsed.data.description;
 
     await db
       .update(transactions)
       .set(updates)
       .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
 
-    return Response.json({ id, ...body });
+    return Response.json({ id, ...parsed.data });
   } catch (err) {
     console.error('PUT /api/transactions/[id]:', err);
     return Response.json({ error: 'Failed to update transaction' }, { status: 500 });

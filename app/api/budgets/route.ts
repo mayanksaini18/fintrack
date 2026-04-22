@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { budgets, transactions } from '@/lib/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { budgetSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function GET() {
@@ -50,16 +51,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const parsed = budgetSchema.safeParse(body);
+    if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+
     const id = crypto.randomUUID();
+    await db.insert(budgets).values({ id, userId, ...parsed.data });
 
-    await db.insert(budgets).values({
-      id,
-      userId,
-      category: body.category,
-      monthlyLimit: body.monthlyLimit,
-    });
-
-    return Response.json({ id, ...body, spent: 0 }, { status: 201 });
+    return Response.json({ id, ...parsed.data, spent: 0 }, { status: 201 });
   } catch (err) {
     console.error('POST /api/budgets:', err);
     return Response.json({ error: 'Failed to create budget' }, { status: 500 });

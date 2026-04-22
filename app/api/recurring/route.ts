@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { recurringTransactions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { recurringSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function GET() {
@@ -35,23 +36,26 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const parsed = recurringSchema.safeParse(body);
+    if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+
     const id = crypto.randomUUID();
-    const startDate = new Date(body.startDate);
+    const startDate = new Date(parsed.data.startDate);
 
     await db.insert(recurringTransactions).values({
       id,
       userId,
-      amount: body.amount,
-      category: body.category,
-      type: body.type,
-      description: body.description,
-      frequency: body.frequency,
+      amount: parsed.data.amount,
+      category: parsed.data.category,
+      type: parsed.data.type,
+      description: parsed.data.description,
+      frequency: parsed.data.frequency,
       startDate,
       nextDueDate: startDate,
       isActive: true,
     });
 
-    return Response.json({ id, ...body }, { status: 201 });
+    return Response.json({ id, ...parsed.data }, { status: 201 });
   } catch (err) {
     console.error('POST /api/recurring:', err);
     return Response.json({ error: 'Failed to create recurring transaction' }, { status: 500 });

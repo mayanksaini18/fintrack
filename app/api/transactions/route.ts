@@ -3,6 +3,7 @@ import { transactions } from '@/lib/db/schema';
 import { desc, asc, ilike, eq, and, SQL } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 import { mockTransactions } from '@/lib/mock-data';
+import { transactionSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -57,19 +58,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const parsed = transactionSchema.safeParse(body);
+    if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 });
+
     const id = crypto.randomUUID();
+    const { date, amount, category, type, description } = parsed.data;
 
-    await db.insert(transactions).values({
-      id,
-      userId,
-      date: new Date(body.date),
-      amount: body.amount,
-      category: body.category,
-      type: body.type,
-      description: body.description,
-    });
+    await db.insert(transactions).values({ id, userId, date: new Date(date), amount, category, type, description });
 
-    return Response.json({ id, ...body }, { status: 201 });
+    return Response.json({ id, ...parsed.data }, { status: 201 });
   } catch (err) {
     console.error('POST /api/transactions:', err);
     return Response.json({ error: 'Failed to create transaction' }, { status: 500 });
