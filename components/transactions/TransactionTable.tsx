@@ -323,26 +323,26 @@ export default function TransactionTable() {
 
       {transactions.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          <p className="text-xs text-zinc-400 dark:text-white/30">
             {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, transactions.length)} of {transactions.length}
           </p>
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7 border-zinc-200 dark:border-zinc-800 text-zinc-500 bg-white dark:bg-zinc-900"
+              className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage <= 1}
               onClick={() => setPage((p) => p - 1)}
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </Button>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 px-2 tabular-nums">
+            <span className="text-xs text-zinc-500 dark:text-white/40 px-2 tabular-nums">
               {safeCurrentPage} / {totalPages}
             </span>
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7 border-zinc-200 dark:border-zinc-800 text-zinc-500 bg-white dark:bg-zinc-900"
+              className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
