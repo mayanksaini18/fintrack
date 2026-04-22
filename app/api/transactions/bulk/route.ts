@@ -8,6 +8,11 @@ export async function POST(request: NextRequest) {
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
+  if (!Array.isArray(body.transactions) || body.transactions.length === 0)
+    return Response.json({ error: 'No transactions provided' }, { status: 400 });
+  if (body.transactions.length > 500)
+    return Response.json({ error: 'Max 500 transactions per import' }, { status: 400 });
+
   const items = body.transactions as Array<{
     date: string;
     amount: number;
