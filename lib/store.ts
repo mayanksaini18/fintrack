@@ -58,7 +58,7 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
     const query = buildQuery(get().filters);
     const res = await fetch(`/api/transactions?${query}`);
     const data = await res.json();
-    set({ transactions: data, loading: false });
+    set({ transactions: Array.isArray(data) ? data : [], loading: false });
   },
 
   addTransaction: async (t) => {
