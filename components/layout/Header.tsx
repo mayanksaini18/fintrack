@@ -13,31 +13,31 @@ import { ThemeToggle } from './ThemeToggle';
 import { UserButton, useUser } from '@clerk/nextjs';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: Receipt },
-  { href: '/recurring', label: 'Recurring', icon: CalendarClock },
-  { href: '/budgets', label: 'Budgets', icon: Target },
-  { href: '/insights', label: 'Insights', icon: TrendingUp },
-  { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
+  { href: '/recurring',    label: 'Recurring',    icon: CalendarClock },
+  { href: '/budgets',      label: 'Budgets',      icon: Target },
+  { href: '/insights',     label: 'Insights',     icon: TrendingUp },
+  { href: '/ai-chat',      label: 'AI Chat',      icon: MessageSquareText },
 ];
 
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/transactions': 'Transactions',
-  '/insights': 'Insights',
-  '/recurring': 'Recurring',
-  '/budgets': 'Budgets',
-  '/ai-chat': 'AI Chat',
+const pageMeta: Record<string, { title: string; sub: string }> = {
+  '/dashboard':    { title: 'Dashboard',    sub: 'Your financial overview' },
+  '/transactions': { title: 'Transactions', sub: 'All income & expenses' },
+  '/insights':     { title: 'Insights',     sub: 'AI-powered analysis' },
+  '/recurring':    { title: 'Recurring',    sub: 'Scheduled payments' },
+  '/budgets':      { title: 'Budgets',      sub: 'Spending limits' },
+  '/ai-chat':      { title: 'AI Chat',      sub: 'Kharcha AI assistant' },
 };
 
 export default function Header() {
   const pathname = usePathname();
-  const title = pageTitles[pathname] ?? 'Kharcha';
+  const meta = pageMeta[pathname] ?? { title: 'Kharcha', sub: '' };
   const { isSignedIn } = useUser();
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between h-[52px] px-6 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200/60 dark:border-zinc-800/60 transition-colors duration-200">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 flex items-center justify-between h-[60px] px-6 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/60 dark:border-zinc-800/60 transition-colors duration-200">
+      <div className="flex items-center gap-4">
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger
@@ -48,12 +48,14 @@ export default function Header() {
               </Button>
             }
           />
-          <SheetContent side="left" className="p-0 w-[220px] bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60">
-            <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
-              <Logo size={22} />
-              <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
+          <SheetContent side="left" className="p-0 w-[228px] bg-[#0d0d18] border-r-0">
+            <div className="flex items-center gap-3 px-5 h-[60px] border-b border-white/[0.06]">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                <Logo size={18} />
+              </div>
+              <span className="text-sm font-semibold text-white tracking-tight">Kharcha</span>
             </div>
-            <nav className="px-2.5 py-4 space-y-0.5">
+            <nav className="px-3 py-4 space-y-0.5">
               {navItems.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href || pathname.startsWith(href + '/');
                 return (
@@ -61,13 +63,18 @@ export default function Header() {
                     key={href}
                     href={href}
                     className={cn(
-                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-100',
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150',
                       active
-                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/10 text-white font-medium'
+                        : 'text-white/40 hover:text-white/80 hover:bg-white/[0.05]'
                     )}
                   >
-                    <Icon className="w-4 h-4 shrink-0" />
+                    <div className={cn(
+                      'w-7 h-7 rounded-lg flex items-center justify-center',
+                      active ? 'bg-gradient-to-br from-indigo-500 to-violet-600' : 'bg-white/[0.06]'
+                    )}>
+                      <Icon className={cn('w-3.5 h-3.5', active ? 'text-white' : 'text-white/60')} />
+                    </div>
                     {label}
                   </Link>
                 );
@@ -75,8 +82,13 @@ export default function Header() {
             </nav>
           </SheetContent>
         </Sheet>
-        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</span>
+
+        <div>
+          <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-none">{meta.title}</h1>
+          {meta.sub && <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">{meta.sub}</p>}
+        </div>
       </div>
+
       <div className="flex items-center gap-2">
         <ThemeToggle />
         {isSignedIn ? (
@@ -92,7 +104,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+              <Button size="sm" className="h-8 text-xs bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border-0 shadow-md shadow-indigo-500/20">
                 Sign up
               </Button>
             </Link>
