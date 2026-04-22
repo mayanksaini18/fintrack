@@ -36,7 +36,7 @@ export default function Header() {
   const { isSignedIn } = useUser();
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between h-[52px] px-6 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200/60 dark:border-zinc-800/60 transition-colors duration-200">
+    <header className="sticky top-0 z-10 flex items-center justify-between h-[52px] px-6 bg-zinc-50/90 dark:bg-[#09090c]/80 dark:backdrop-blur-2xl border-b border-zinc-200/60 dark:border-white/[0.06] transition-colors duration-200">
       <div className="flex items-center gap-3">
         {/* Mobile menu */}
         <Sheet>
@@ -48,8 +48,8 @@ export default function Header() {
               </Button>
             }
           />
-          <SheetContent side="left" className="p-0 w-[220px] bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60">
-            <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
+          <SheetContent side="left" className="p-0 w-[220px] bg-white dark:bg-[#09090c]/95 dark:backdrop-blur-2xl border-r border-zinc-200/80 dark:border-white/[0.06]">
+            <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-white/[0.06]">
               <Logo size={22} />
               <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
             </div>
@@ -61,10 +61,10 @@ export default function Header() {
                     key={href}
                     href={href}
                     className={cn(
-                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-100',
+                      'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
                       active
-                        ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                        ? 'bg-zinc-100 dark:bg-violet-500/15 dark:border dark:border-violet-500/20 text-zinc-900 dark:text-violet-200 font-medium'
+                        : 'text-zinc-500 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white/80 hover:bg-zinc-50 dark:hover:bg-white/[0.05]'
                     )}
                   >
                     <Icon className="w-4 h-4 shrink-0" />

@@ -74,21 +74,23 @@ export default function SummaryCards() {
         return (
           <div
             key={card.label}
-            className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 px-5 py-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 animate-in fade-in-0 slide-in-from-bottom-2"
+            className="bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] px-5 py-4 hover:border-zinc-300 dark:hover:border-white/[0.14] transition-all duration-200 animate-in fade-in-0 slide-in-from-bottom-2"
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
           >
-            <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">
+            <p className="text-[11px] font-medium text-zinc-400 dark:text-white/40 uppercase tracking-widest mb-3">
               {card.label}
             </p>
-            <p className="text-[26px] font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums leading-none tracking-tight">
+            <p className="text-[26px] font-semibold text-zinc-900 dark:text-white tabular-nums leading-none tracking-tight">
               {card.value}
             </p>
             <div className="flex items-center gap-1.5 mt-2.5">
               {hasTrend ? (
                 <span
                   className={cn(
-                    'inline-flex items-center gap-1 text-[11px] font-medium',
-                    card.trendPositive ? 'text-emerald-600' : 'text-rose-500'
+                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium',
+                    card.trendPositive
+                      ? 'text-emerald-400 dark:bg-emerald-500/10'
+                      : 'text-rose-500 dark:bg-rose-500/10'
                   )}
                 >
                   {card.trendPositive ? (
@@ -99,7 +101,7 @@ export default function SummaryCards() {
                   {Math.abs(card.trend ?? 0).toFixed(1)}%
                 </span>
               ) : null}
-              <span className="text-[11px] text-zinc-400 dark:text-zinc-500">{card.sub}</span>
+              <span className="text-[11px] text-zinc-400 dark:text-white/30">{card.sub}</span>
             </div>
           </div>
         );

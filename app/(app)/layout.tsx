@@ -9,7 +9,14 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="min-h-screen lg:flex relative">
+      {/* Ambient glow orbs — dark mode only */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10 hidden dark:block">
+        <div className="absolute -top-48 -left-48 w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[120px]" />
+        <div className="absolute top-1/2 -right-48 w-[500px] h-[500px] rounded-full bg-blue-600/8 blur-[120px]" />
+        <div className="absolute -bottom-32 left-1/3 w-[400px] h-[400px] rounded-full bg-violet-500/8 blur-[100px]" />
+      </div>
+
       <Sidebar />
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Header />

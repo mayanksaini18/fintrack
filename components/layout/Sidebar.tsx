@@ -21,9 +21,9 @@ export default function Sidebar() {
   const { user, isSignedIn } = useUser();
 
   return (
-    <aside className="hidden lg:flex flex-col w-[220px] min-h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60 shrink-0 transition-colors duration-200">
+    <aside className="hidden lg:flex flex-col w-[220px] min-h-screen bg-white dark:bg-[#09090c]/85 dark:backdrop-blur-2xl border-r border-zinc-200/80 dark:border-white/[0.06] shrink-0 transition-colors duration-200">
       {/* Brand */}
-      <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-zinc-800/60">
+      <div className="flex items-center gap-2.5 px-5 h-[52px] border-b border-zinc-200/80 dark:border-white/[0.06]">
         <Logo size={22} />
         <span className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
       </div>
@@ -37,13 +37,13 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-100',
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
                 active
-                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium'
-                  : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900'
+                  ? 'bg-zinc-100 dark:bg-violet-500/15 dark:border dark:border-violet-500/20 text-zinc-900 dark:text-violet-200 font-medium'
+                  : 'text-zinc-500 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white/80 hover:bg-zinc-50 dark:hover:bg-white/[0.05]'
               )}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              <Icon className={cn('w-4 h-4 shrink-0', active && 'dark:text-violet-400')} />
               {label}
             </Link>
           );
@@ -51,7 +51,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom — user profile */}
-      <div className="px-3 py-3 border-t border-zinc-200/80 dark:border-zinc-800/60">
+      <div className="px-3 py-3 border-t border-zinc-200/80 dark:border-white/[0.06]">
         {isSignedIn ? (
           <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
             <UserButton

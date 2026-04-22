@@ -38,8 +38,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg shadow-zinc-100/50 p-3.5 min-w-[160px]">
-      <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2.5">{label}</p>
+    <div className="bg-white dark:glass-strong rounded-xl shadow-lg dark:shadow-black/40 p-3.5 min-w-[160px]">
+      <p className="text-[11px] font-medium text-zinc-400 dark:text-white/40 uppercase tracking-widest mb-2.5">{label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex justify-between items-center gap-6 mb-1.5 last:mb-0">
           <div className="flex items-center gap-2">
@@ -56,9 +56,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 const LINES = [
-  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#e4e4e7' },
-  { key: 'income', name: 'Income', colorLight: '#10b981', colorDark: '#10b981' },
-  { key: 'expenses', name: 'Expenses', colorLight: '#f43f5e', colorDark: '#f43f5e' },
+  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#a78bfa' },
+  { key: 'income', name: 'Income', colorLight: '#10b981', colorDark: '#34d399' },
+  { key: 'expenses', name: 'Expenses', colorLight: '#f43f5e', colorDark: '#fb7185' },
 ];
 
 export default function BalanceTrendChart() {
@@ -72,17 +72,17 @@ export default function BalanceTrendChart() {
       : getMonthlyData(transactions, range === '1y' ? 12 : 6);
 
   const isDark = theme === 'dark';
-  const axisColor = isDark ? '#52525b' : '#a1a1aa';
-  const gridColor = isDark ? '#27272a' : '#f4f4f5';
+  const axisColor = isDark ? 'rgba(255,255,255,0.25)' : '#a1a1aa';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : '#f4f4f5';
 
   const rangeLabel = range === '1m' ? 'Last 4 weeks' : range === '6m' ? 'Last 6 months' : 'Last 12 months';
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-5 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
+    <div className="bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] p-5 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
       <div className="flex items-start justify-between mb-1">
         <div>
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Balance Trend</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{rangeLabel}</p>
+          <p className="text-sm font-semibold text-zinc-900 dark:text-white">Balance Trend</p>
+          <p className="text-xs text-zinc-400 dark:text-white/40 mt-0.5">{rangeLabel}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-4">

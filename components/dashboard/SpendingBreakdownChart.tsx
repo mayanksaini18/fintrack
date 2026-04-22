@@ -18,9 +18,9 @@ const COLORS = [
 ];
 
 const COLORS_DARK = [
-  '#e4e4e7', '#a1a1aa', '#71717a', '#52525b',
-  '#818cf8', '#34d399', '#fbbf24', '#fb7185',
-  '#60a5fa', '#a78bfa',
+  '#a78bfa', '#34d399', '#fb7185', '#fbbf24',
+  '#60a5fa', '#818cf8', '#f472b6', '#4ade80',
+  '#38bdf8', '#c084fc',
 ];
 
 interface TooltipPayloadItem {
@@ -38,7 +38,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) return null;
   const item = payload[0];
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg shadow-zinc-100/50 px-3.5 py-2.5">
+    <div className="bg-white dark:glass-strong rounded-xl shadow-lg dark:shadow-black/40 px-3.5 py-2.5">
       <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{item.name}</p>
       <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
         {formatCurrency(item.value)} · {item.payload.percentage.toFixed(1)}%
@@ -56,9 +56,9 @@ export default function SpendingBreakdownChart() {
 
   if (breakdown.length === 0) {
     return (
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-5 flex flex-col h-full transition-colors duration-200">
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Spending</p>
-        <p className="text-xs text-zinc-400 dark:text-zinc-500">By category</p>
+      <div className="bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] p-5 flex flex-col h-full transition-colors duration-200">
+        <p className="text-sm font-semibold text-zinc-900 dark:text-white mb-0.5">Spending</p>
+        <p className="text-xs text-zinc-400 dark:text-white/40">By category</p>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-xs text-zinc-400">No expense data</p>
         </div>
@@ -67,9 +67,9 @@ export default function SpendingBreakdownChart() {
   }
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 p-5 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '180ms', animationFillMode: 'both' }}>
-      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Spending</p>
-      <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">By category</p>
+    <div className="bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] p-5 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '180ms', animationFillMode: 'both' }}>
+      <p className="text-sm font-semibold text-zinc-900 dark:text-white mb-0.5">Spending</p>
+      <p className="text-xs text-zinc-400 dark:text-white/40 mb-5">By category</p>
 
       <div className="flex justify-center mb-5">
         <ResponsiveContainer width={160} height={160}>
