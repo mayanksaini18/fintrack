@@ -23,7 +23,7 @@ export default function RoleSwitcher() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md px-2.5"
+            className="h-7 gap-1.5 text-xs font-medium text-zinc-500 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.06] rounded-md px-2.5 border border-transparent dark:hover:border-white/[0.08]"
           >
             {isAdmin ? (
               <Shield className="w-3.5 h-3.5" />
