@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { auth } from '@clerk/nextjs/server';
+import { inArray, eq, and } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -41,4 +42,26 @@ export async function POST(request: NextRequest) {
   }
 
   return Response.json({ inserted: values.length }, { status: 201 });
+}
+
+export async function DELETE(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const body = await request.json();
+  if (!Array.isArray(body.ids) || body.ids.length === 0)
+    return Response.json({ error: 'No ids provided' }, { status: 400 });
+  if (body.ids.length > 500)
+    return Response.json({ error: 'Max 500 deletions per request' }, { status: 400 });
+
+  try {
+    await db
+      .delete(transactions)
+      .where(and(inArray(transactions.id, body.ids), eq(transactions.userId, userId)));
+  } catch (err) {
+    console.error('Bulk delete error:', err);
+    return Response.json({ error: 'Failed to delete transactions' }, { status: 500 });
+  }
+
+  return Response.json({ deleted: body.ids.length });
 }

@@ -14,6 +14,7 @@ interface FinanceStore {
   addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  bulkDeleteTransactions: (ids: string[]) => Promise<void>;
   importTransactions: (txns: Omit<Transaction, 'id'>[]) => Promise<void>;
 }
 
@@ -81,6 +82,15 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
 
   deleteTransaction: async (id) => {
     await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    await get().fetchTransactions();
+  },
+
+  bulkDeleteTransactions: async (ids) => {
+    await fetch('/api/transactions/bulk', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
     await get().fetchTransactions();
   },
 

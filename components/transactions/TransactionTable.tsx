@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, AlertTriangle, FileUp } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, AlertTriangle, FileUp, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import AddTransactionDialog from './AddTransactionDialog';
@@ -56,7 +56,7 @@ const CATEGORY_DOT: Record<string, string> = {
 };
 
 export default function TransactionTable() {
-  const { transactions, role, deleteTransaction, updateTransaction } = useFinanceStore();
+  const { transactions, role, deleteTransaction, updateTransaction, bulkDeleteTransactions } = useFinanceStore();
   const isAdmin = role === 'admin';
 
   const [page, setPage] = useState(1);
@@ -65,6 +65,8 @@ export default function TransactionTable() {
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [editForm, setEditForm] = useState<Partial<Transaction>>({});
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(page, totalPages);
@@ -98,6 +100,29 @@ export default function TransactionTable() {
     setDeleteTarget(null);
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === paged.length && paged.length > 0) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(paged.map((tx) => tx.id)));
+    }
+  }
+
+  async function confirmBulkDelete() {
+    await bulkDeleteTransactions(Array.from(selected));
+    toast.success(`${selected.size} transaction${selected.size !== 1 ? 's' : ''} deleted`);
+    setSelected(new Set());
+    setBulkDeleteOpen(false);
+  }
+
   function exportCSV() {
     const headers = ['Date', 'Description', 'Category', 'Type', 'Amount'];
     const rows = transactions.map((tx) => [
@@ -118,8 +143,39 @@ export default function TransactionTable() {
     toast.success(`Exported ${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`);
   }
 
+  const allPageSelected = paged.length > 0 && paged.every((tx) => selected.has(tx.id));
+  const somePageSelected = paged.some((tx) => selected.has(tx.id));
+
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-4 h-4" />
+            <span className="text-sm font-medium">{selected.size} selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs text-zinc-400 dark:text-zinc-500 hover:text-white dark:hover:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+              onClick={() => setSelected(new Set())}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-rose-500 hover:bg-rose-600 text-white border-0"
+              onClick={() => setBulkDeleteOpen(true)}
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-1" />
+              Delete {selected.size}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-end gap-2">
         <Button
           variant="outline"
@@ -159,6 +215,17 @@ export default function TransactionTable() {
           <Table>
             <TableHeader>
               <TableRow className="border-zinc-100 dark:border-zinc-800 hover:bg-transparent">
+                {isAdmin && (
+                  <TableHead className="h-10 w-10 pl-3">
+                    <input
+                      type="checkbox"
+                      checked={allPageSelected}
+                      ref={(el) => { if (el) el.indeterminate = somePageSelected && !allPageSelected; }}
+                      onChange={toggleSelectAll}
+                      className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+                    />
+                  </TableHead>
+                )}
                 <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-28">Date</TableHead>
                 <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10">Description</TableHead>
                 <TableHead className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest h-10 w-36">Category</TableHead>
@@ -170,7 +237,7 @@ export default function TransactionTable() {
             <TableBody>
               {paged.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-20">
+                  <TableCell colSpan={isAdmin ? 7 : 5} className="text-center py-20">
                     <div className="flex flex-col items-center gap-2 text-zinc-400">
                       <FileX className="w-8 h-8 opacity-30" />
                       <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No transactions found</p>
@@ -182,8 +249,21 @@ export default function TransactionTable() {
                 paged.map((tx) => (
                   <TableRow
                     key={tx.id}
-                    className="border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors"
+                    className={cn(
+                      'border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors',
+                      selected.has(tx.id) && 'bg-zinc-50 dark:bg-zinc-800/60'
+                    )}
                   >
+                    {isAdmin && (
+                      <TableCell className="pl-3 py-3.5">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(tx.id)}
+                          onChange={() => toggleSelect(tx.id)}
+                          className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+                        />
+                      </TableCell>
+                    )}
                     <TableCell className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums py-3.5">
                       {formatDate(tx.date)}
                     </TableCell>
@@ -347,6 +427,31 @@ export default function TransactionTable() {
             </Button>
             <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
               Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk delete confirmation dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={(v) => !v && setBulkDeleteOpen(false)}>
+        <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-950/40 shrink-0">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
+              </div>
+              <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Delete {selected.size} Transactions</DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pl-12">
+              This will permanently delete {selected.size} transaction{selected.size !== 1 ? 's' : ''}. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 mt-2">
+            <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(false)} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+              Cancel
+            </Button>
+            <Button size="sm" onClick={confirmBulkDelete} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
+              Delete {selected.size}
             </Button>
           </DialogFooter>
         </DialogContent>
