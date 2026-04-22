@@ -25,11 +25,13 @@ export default function AIInsights() {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800/60 bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-950/30 dark:to-blue-950/30">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">AI Insights</h3>
+    <div className="rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:glass overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-white/[0.06] bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-500/[0.06] dark:to-blue-500/[0.04]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-lg bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          </div>
+          <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">AI Insights</h3>
         </div>
         <Button
           variant="ghost"
