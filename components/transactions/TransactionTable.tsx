@@ -360,35 +360,35 @@ export default function TransactionTable() {
 
       {/* Edit dialog */}
       <Dialog open={!!editTx} onOpenChange={(v) => !v && setEditTx(null)}>
-        <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-sm dark:bg-[#0f0f14] dark:border-white/[0.08] dark:backdrop-blur-2xl">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Edit Transaction</DialogTitle>
+            <DialogTitle className="text-sm font-semibold dark:text-white">Edit Transaction</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-1">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Description</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Description</label>
               <Input
                 value={editForm.description ?? ''}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Amount (₹)</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Amount (₹)</label>
               <Input
                 type="number"
                 min={0.01}
                 step={0.01}
                 value={editForm.amount ?? ''}
                 onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })}
-                className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Category</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Category</label>
                 <Select value={editForm.category} onValueChange={(v) => v && setEditForm({ ...editForm, category: v as Category })}>
-                  <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                  <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -399,9 +399,9 @@ export default function TransactionTable() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Type</label>
+                <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Type</label>
                 <Select value={editForm.type} onValueChange={(v) => v && setEditForm({ ...editForm, type: v as TransactionType })}>
-                  <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                  <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -412,20 +412,20 @@ export default function TransactionTable() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Date</label>
+              <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Date</label>
               <Input
                 type="date"
                 value={typeof editForm.date === 'string' ? editForm.date.split('T')[0] : ''}
                 onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
               />
             </div>
           </div>
           <DialogFooter className="gap-2 mt-1">
-            <Button variant="outline" size="sm" onClick={() => setEditTx(null)} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+            <Button variant="outline" size="sm" onClick={() => setEditTx(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_14px_rgba(139,92,246,0.35)]">
               Save
             </Button>
           </DialogFooter>
@@ -434,20 +434,20 @@ export default function TransactionTable() {
 
       {/* Bulk delete confirmation dialog */}
       <Dialog open={bulkDeleteOpen} onOpenChange={(v) => !v && setBulkDeleteOpen(false)}>
-        <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-sm dark:bg-[#0f0f14] dark:border-white/[0.08] dark:backdrop-blur-2xl">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-950/40 shrink-0">
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-500/10 dark:border dark:border-rose-500/20 shrink-0">
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
               </div>
-              <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Delete {selected.size} Transactions</DialogTitle>
+              <DialogTitle className="text-sm font-semibold dark:text-white">Delete {selected.size} Transactions</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pl-12">
               This will permanently delete {selected.size} transaction{selected.size !== 1 ? 's' : ''}. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 mt-2">
-            <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(false)} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+            <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(false)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
             <Button size="sm" onClick={confirmBulkDelete} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
@@ -459,13 +459,13 @@ export default function TransactionTable() {
 
       {/* Delete confirmation dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-sm dark:bg-[#0f0f14] dark:border-white/[0.08] dark:backdrop-blur-2xl">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-950/40 shrink-0">
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-500/10 dark:border dark:border-rose-500/20 shrink-0">
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
               </div>
-              <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Delete Transaction</DialogTitle>
+              <DialogTitle className="text-sm font-semibold dark:text-white">Delete Transaction</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pl-12">
               <span className="font-medium text-zinc-700 dark:text-zinc-300">{deleteTarget?.description}</span>
@@ -477,7 +477,7 @@ export default function TransactionTable() {
               variant="outline"
               size="sm"
               onClick={() => setDeleteTarget(null)}
-              className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
             >
               Cancel
             </Button>
