@@ -1,6 +1,6 @@
 import { generateText } from 'ai';
 import { AI_MODEL } from '@/lib/ai';
-
+import { rateLimit } from '@/lib/rate-limit';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
@@ -64,6 +64,9 @@ async function extractTextFromFile(file: File): Promise<string> {
 export async function POST(request: Request) {
   const { userId } = await auth();
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { ok } = rateLimit(userId, 15, 60_000);
+  if (!ok) return Response.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 });
 
   const contentType = request.headers.get('content-type') || '';
 
