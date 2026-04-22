@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target, MessageSquareText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
+import { useUser, UserButton } from '@clerk/nextjs';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,6 +18,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user, isSignedIn } = useUser();
 
   return (
     <aside className="hidden lg:flex flex-col w-[220px] min-h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200/80 dark:border-zinc-800/60 shrink-0 transition-colors duration-200">
@@ -48,9 +50,29 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
-      <div className="px-5 py-4 border-t border-zinc-200/80 dark:border-zinc-800/60">
-        <p className="text-[11px] text-zinc-400 dark:text-zinc-600">v1.0</p>
+      {/* Bottom — user profile */}
+      <div className="px-3 py-3 border-t border-zinc-200/80 dark:border-zinc-800/60">
+        {isSignedIn ? (
+          <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: 'w-7 h-7 rounded-full ring-1 ring-zinc-200 dark:ring-zinc-700',
+                },
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">
+                {user.fullName ?? user.username ?? 'Account'}
+              </p>
+              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                {user.primaryEmailAddress?.emailAddress}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-[11px] text-zinc-400 dark:text-zinc-600 px-2">v1.0</p>
+        )}
       </div>
     </aside>
   );

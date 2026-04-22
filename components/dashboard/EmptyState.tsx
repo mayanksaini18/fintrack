@@ -39,8 +39,8 @@ export default function EmptyState() {
         </button>
       </div>
 
-      <AddTransactionDialog open={addOpen} onOpenChange={setAddOpen} />
-      <SmartImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <AddTransactionDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <SmartImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }
