@@ -129,10 +129,10 @@ export default function SmartImportDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-lg dark:bg-zinc-900 dark:border-zinc-800 max-h-[85vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg dark:bg-[#0f0f14] dark:border-white/[0.08] max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-sm font-semibold dark:text-zinc-100 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-violet-500" />
+            <Sparkles className="w-4 h-4 text-zinc-400" />
             Smart Import
           </DialogTitle>
         </DialogHeader>
@@ -146,8 +146,8 @@ export default function SmartImportDialog({ open, onClose }: Props) {
               onClick={() => fileRef.current?.click()}
               className={`flex flex-col items-center justify-center gap-3 py-12 px-6 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
                 dragOver
-                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/20'
-                  : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 bg-zinc-50 dark:bg-zinc-800/30'
+                  ? 'border-zinc-400 bg-zinc-50 dark:bg-white/[0.06]'
+                  : 'border-zinc-200 dark:border-white/[0.08] hover:border-zinc-300 dark:hover:border-white/20 bg-zinc-50 dark:bg-white/[0.03]'
               }`}
             >
               <Upload className="w-8 h-8 text-zinc-400" />
@@ -161,7 +161,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
               </div>
               <div className="flex gap-1.5 mt-1">
                 {['CSV', 'Excel', 'PDF', 'TXT'].map((t) => (
-                  <Badge key={t} variant="secondary" className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+                  <Badge key={t} variant="secondary" className="text-[10px] bg-zinc-100 dark:bg-white/[0.06] dark:text-white/50 text-zinc-500">
                     {t}
                   </Badge>
                 ))}
@@ -182,7 +182,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
 
         {step === 'parsing' && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
             <div className="text-center">
               <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 AI is parsing your document...
@@ -209,7 +209,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
 
             <div className="flex gap-3 text-xs text-zinc-500 px-1">
               <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{selectedCount}</strong></span>
-              <span>Income: <strong className="text-emerald-600">{formatCurrency(totalIncome)}</strong></span>
+              <span>Income: <strong className="text-zinc-700 dark:text-zinc-300">{formatCurrency(totalIncome)}</strong></span>
               <span>Expense: <strong className="text-rose-600">{formatCurrency(totalExpense)}</strong></span>
             </div>
 
@@ -220,14 +220,14 @@ export default function SmartImportDialog({ open, onClose }: Props) {
                   onClick={() => toggleItem(i)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${
                     t.selected
-                      ? 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50'
-                      : 'border-transparent bg-zinc-50 dark:bg-zinc-900 opacity-50'
+                      ? 'border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04]'
+                      : 'border-transparent bg-zinc-50 dark:bg-transparent opacity-50'
                   }`}
                 >
                   <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
                     t.selected
-                      ? 'border-emerald-500 bg-emerald-500'
-                      : 'border-zinc-300 dark:border-zinc-600'
+                      ? 'border-zinc-700 bg-zinc-700 dark:border-zinc-300 dark:bg-zinc-300'
+                      : 'border-zinc-300 dark:border-white/20'
                   }`}>
                     {t.selected && <Check className="w-3 h-3 text-white" />}
                   </div>
@@ -238,7 +238,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
                     </div>
                     <span className="text-xs text-zinc-400">{new Date(t.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
-                  <span className={`text-sm font-semibold tabular-nums shrink-0 ${t.type === 'income' ? 'text-emerald-600' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <span className={`text-sm font-semibold tabular-nums shrink-0 ${t.type === 'income' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-900 dark:text-zinc-100'}`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </span>
                 </div>
@@ -246,14 +246,14 @@ export default function SmartImportDialog({ open, onClose }: Props) {
             </div>
 
             <DialogFooter className="gap-2 mt-1">
-              <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+              <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-300">
                 Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={handleImport}
                 disabled={selectedCount === 0 || importing}
-                className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white gap-1.5"
+                className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white gap-1.5"
               >
                 {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                 Import {selectedCount} transactions

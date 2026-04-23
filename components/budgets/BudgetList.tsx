@@ -96,9 +96,9 @@ export default function BudgetList() {
     <div className="space-y-6">
       {/* Overall summary */}
       {budgets.length > 0 && (
-        <div className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 p-5">
+        <div className="rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:glass p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Overall Budget</span>
+            <span className="text-sm font-medium text-zinc-700 dark:text-white/80">Overall Budget</span>
             <span className={`text-sm font-semibold ${overallPct > 90 ? 'text-rose-600' : overallPct > 70 ? 'text-amber-600' : 'text-emerald-600'}`}>
               {overallPct}%
             </span>
@@ -123,7 +123,7 @@ export default function BudgetList() {
         <Button
           size="sm"
           onClick={() => setShowAdd(true)}
-          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white"
+          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
         >
           <Plus className="w-3.5 h-3.5" />
           Set Budget
@@ -151,16 +151,16 @@ export default function BudgetList() {
                 key={budget.id}
                 className={`rounded-xl border p-4 transition-colors ${
                   isDanger
-                    ? 'border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20'
+                    ? 'border-rose-200 dark:border-rose-500/20 bg-rose-50/50 dark:bg-rose-500/[0.06]'
                     : isWarning
-                    ? 'border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20'
-                    : 'border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900'
+                    ? 'border-amber-200 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-500/[0.06]'
+                    : 'border-zinc-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{CATEGORY_ICONS[budget.category] || '📦'}</span>
-                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{budget.category}</span>
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white/90">{budget.category}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     {isDanger && <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />}
@@ -186,7 +186,7 @@ export default function BudgetList() {
                 <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-400' : 'bg-zinc-600 dark:bg-zinc-400'
                     }`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
@@ -196,7 +196,7 @@ export default function BudgetList() {
                   <span className="text-zinc-500">
                     {formatCurrency(budget.spent)} / {formatCurrency(budget.monthlyLimit)}
                   </span>
-                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-zinc-700 dark:text-zinc-200'}`}>
                     {isOver ? `${formatCurrency(Math.abs(remaining))} over` : `${formatCurrency(remaining)} left`}
                   </span>
                 </div>
@@ -208,7 +208,7 @@ export default function BudgetList() {
 
       {/* Edit dialog */}
       <Dialog open={!!editId} onOpenChange={(v) => !v && setEditId(null)}>
-        <DialogContent className="sm:max-w-xs dark:bg-zinc-900 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-xs dark:bg-[#0f0f14] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Edit Budget Limit</DialogTitle>
           </DialogHeader>
@@ -219,14 +219,14 @@ export default function BudgetList() {
               value={editLimit}
               onChange={(e) => setEditLimit(e.target.value)}
               min={1}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
           </div>
           <DialogFooter className="gap-2 mt-1">
-            <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+            <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
               Cancel
             </Button>
-            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
               Save
             </Button>
           </DialogFooter>
@@ -271,7 +271,7 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-xs dark:bg-zinc-900 dark:border-zinc-800">
+      <DialogContent className="sm:max-w-xs dark:bg-[#0f0f14] dark:border-white/[0.08]">
         <DialogHeader>
           <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Set Category Budget</DialogTitle>
         </DialogHeader>
@@ -279,7 +279,7 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Category</label>
             <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-              <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+              <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -304,16 +304,16 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
               value={limit}
               onChange={(e) => setLimit(e.target.value)}
               min={1}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
             {errors.limit && <p className="text-[11px] text-rose-500">{errors.limit}</p>}
           </div>
         </div>
         <DialogFooter className="gap-2 mt-1">
-          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
             Set Budget
           </Button>
         </DialogFooter>

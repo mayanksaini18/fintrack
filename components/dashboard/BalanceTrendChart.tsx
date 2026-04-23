@@ -44,9 +44,9 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
         <div key={entry.name} className="flex justify-between items-center gap-6 mb-1.5 last:mb-0">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{entry.name}</span>
+            <span className="text-xs text-zinc-500 dark:text-white/50">{entry.name}</span>
           </div>
-          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+          <span className="text-xs font-semibold text-zinc-900 dark:text-white tabular-nums">
             {formatCurrency(entry.value)}
           </span>
         </div>
@@ -56,7 +56,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 const LINES = [
-  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#a78bfa' },
+  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#e4e4e7' },
   { key: 'income', name: 'Income', colorLight: '#10b981', colorDark: '#34d399' },
   { key: 'expenses', name: 'Expenses', colorLight: '#f43f5e', colorDark: '#fb7185' },
 ];
@@ -92,19 +92,19 @@ export default function BalanceTrendChart() {
                   className="w-3 h-0.5 rounded-full"
                   style={{ backgroundColor: isDark ? l.colorDark : l.colorLight }}
                 />
-                <span className="text-[11px] text-zinc-400 dark:text-zinc-500">{l.name}</span>
+                <span className="text-[11px] text-zinc-400 dark:text-white/35">{l.name}</span>
               </div>
             ))}
           </div>
-          <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 p-0.5 gap-0.5">
+          <div className="flex items-center rounded-lg border border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.03] p-0.5 gap-0.5">
             {RANGES.map((r) => (
               <button
                 key={r.value}
                 onClick={() => setRange(r.value)}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
                   range === r.value
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                    ? 'bg-zinc-900 dark:bg-zinc-700 text-white'
+                    : 'text-zinc-500 dark:text-white/40 hover:text-zinc-700 dark:hover:text-white/70'
                 }`}
               >
                 {r.label}
@@ -116,7 +116,7 @@ export default function BalanceTrendChart() {
 
       <div className="mt-5">
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
             <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="month"

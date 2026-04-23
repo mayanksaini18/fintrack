@@ -78,7 +78,7 @@ interface InsightsData {
   }>;
 }
 
-const BAR_COLORS = ['bg-zinc-900 dark:bg-zinc-100', 'bg-zinc-500', 'bg-zinc-300 dark:bg-zinc-600'];
+const BAR_COLORS = ['bg-zinc-900 dark:bg-zinc-500', 'bg-zinc-500 dark:bg-zinc-400', 'bg-zinc-300 dark:bg-zinc-600/50'];
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -89,15 +89,15 @@ interface ChartTooltipProps {
 function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg p-3 min-w-[140px]">
-      <p className="text-[11px] font-medium text-zinc-400 uppercase tracking-widest mb-2">{label}</p>
+    <div className="bg-white dark:glass-strong rounded-xl shadow-lg dark:shadow-black/40 p-3 min-w-[140px]">
+      <p className="text-[11px] font-medium text-zinc-400 dark:text-white/35 uppercase tracking-widest mb-2">{label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex justify-between items-center gap-4 mb-1 last:mb-0">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{entry.name}</span>
+            <span className="text-xs text-zinc-500 dark:text-white/50">{entry.name}</span>
           </div>
-          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
+          <span className="text-xs font-semibold text-zinc-900 dark:text-white tabular-nums">
             {formatCurrency(entry.value)}
           </span>
         </div>
@@ -144,12 +144,12 @@ export default function InsightsPanel() {
   const expenseChange = lastMonth?.expenses > 0 ? ((currentMonth.expenses - lastMonth.expenses) / lastMonth.expenses) * 100 : 0;
   const savingsTrend = currentMonth.savingsRate - (lastMonth?.savingsRate ?? 0);
 
-  const axisColor = isDark ? '#52525b' : '#a1a1aa';
-  const gridColor = isDark ? '#27272a' : '#f4f4f5';
+  const axisColor = isDark ? 'rgba(255,255,255,0.25)' : '#a1a1aa';
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : '#f4f4f5';
 
-  const cardBase = 'bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 px-5 py-4 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2';
-  const labelBase = 'text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3';
-  const valueBase = 'text-[26px] font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums leading-none tracking-tight';
+  const cardBase = 'bg-white dark:glass rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] px-5 py-4 transition-colors duration-200 animate-in fade-in-0 slide-in-from-bottom-2 dark:hover:border-white/[0.14]';
+  const labelBase = 'text-[11px] font-medium text-zinc-400 dark:text-white/35 uppercase tracking-widest mb-3';
+  const valueBase = 'text-[26px] font-semibold text-zinc-900 dark:text-white tabular-nums leading-none tracking-tight';
 
   const highestSpendDay = [...weekdaySpending].sort((a, b) => b.avg - a.avg)[0];
   const lowestSpendDay = [...weekdaySpending].filter(d => d.count > 0).sort((a, b) => a.avg - b.avg)[0];
@@ -268,7 +268,7 @@ export default function InsightsPanel() {
         </div>
         <div className="mt-5">
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <BarChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: string) => v.split(' ')[0]} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} width={42} />
@@ -286,7 +286,7 @@ export default function InsightsPanel() {
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Savings Rate Over Time</p>
           <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">Monthly savings as % of income</p>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <LineChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: string) => v.split(' ')[0]} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}%`} width={36} />
@@ -303,7 +303,7 @@ export default function InsightsPanel() {
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Spending by Day of Week</p>
           <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">Average spend per transaction</p>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={weekdaySpending} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <BarChart data={weekdaySpending} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} width={36} />
@@ -411,13 +411,13 @@ export default function InsightsPanel() {
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{src.source}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] text-zinc-400 tabular-nums">{src.percentage}%</span>
-                    <span className="text-sm font-semibold text-emerald-600 tabular-nums w-20 text-right">
+                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 tabular-nums w-20 text-right">
                       {formatCurrency(src.total)}
                     </span>
                   </div>
                 </div>
                 <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${src.percentage}%` }} />
+                  <div className="h-1.5 rounded-full bg-zinc-500" style={{ width: `${src.percentage}%` }} />
                 </div>
               </div>
             ))}

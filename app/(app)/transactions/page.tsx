@@ -23,12 +23,15 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-zinc-400">Browse, filter, and manage your transactions.</p>
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Transactions</h1>
+          <p className="text-xs text-zinc-400 dark:text-white/35 mt-0.5">Browse, filter, and manage your transactions.</p>
+        </div>
         <Button
           size="sm"
           variant="outline"
           onClick={() => setShowSmartImport(true)}
-          className="h-8 text-xs gap-1.5 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+          className="h-8 text-xs gap-1.5 border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.06]"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Smart Import

@@ -187,8 +187,10 @@ export default function AIChatPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-52px)] max-w-3xl mx-auto">
       <div className="flex items-center gap-2 py-3 px-1">
-        <Sparkles className="w-4 h-4 text-violet-500" />
-        <h1 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Kharcha AI</h1>
+        <div className="w-7 h-7 rounded-xl bg-zinc-100 dark:bg-white/[0.08] flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-300" />
+        </div>
+        <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">Kharcha AI</h1>
         <Badge variant="secondary" className="text-[10px]">Beta</Badge>
       </div>
 
@@ -196,16 +198,16 @@ export default function AIChatPage() {
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'assistant' && (
-              <div className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+              <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="w-4 h-4 text-zinc-500 dark:text-zinc-300" />
               </div>
             )}
             <div className={`max-w-[85%] space-y-3 ${msg.role === 'user' ? 'items-end' : ''}`}>
               <div
-                className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-br-sm'
-                    : 'bg-zinc-100 dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 rounded-bl-sm'
+                    ? 'bg-zinc-900 dark:bg-white/[0.1] dark:border dark:border-white/[0.12] text-white rounded-br-sm'
+                    : 'bg-zinc-100 dark:bg-white/[0.05] dark:border dark:border-white/[0.08] dark:backdrop-blur-sm text-zinc-800 dark:text-white/85 rounded-bl-sm'
                 }`}
               >
                 {msg.role === 'user' && msg.file && (
@@ -233,8 +235,8 @@ export default function AIChatPage() {
               )}
             </div>
             {msg.role === 'user' && (
-              <div className="w-7 h-7 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center shrink-0 mt-0.5">
-                <User className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+              <div className="w-7 h-7 rounded-xl bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5">
+                <User className="w-4 h-4 text-zinc-400" />
               </div>
             )}
           </div>
@@ -242,22 +244,22 @@ export default function AIChatPage() {
 
         {loading && (
           <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            <div className="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4 text-zinc-500 dark:text-zinc-300" />
             </div>
-            <div className="bg-zinc-100 dark:bg-zinc-800/60 rounded-xl rounded-bl-sm px-4 py-3">
-              <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+            <div className="bg-zinc-100 dark:bg-white/[0.05] dark:border dark:border-white/[0.08] dark:backdrop-blur-sm rounded-2xl rounded-bl-sm px-4 py-3">
+              <Loader2 className="w-4 h-4 animate-spin text-zinc-400 dark:text-zinc-300" />
             </div>
           </div>
         )}
       </div>
 
-      <div className="border-t border-zinc-200 dark:border-zinc-800 px-1 py-3">
+      <div className="border-t border-zinc-200 dark:border-white/[0.06] px-1 py-3">
         {selectedFile && (
-          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800">
-            <FileText className="w-4 h-4 text-violet-500" />
-            <span className="text-xs text-violet-700 dark:text-violet-300 truncate flex-1">{selectedFile.name}</span>
-            <button onClick={() => setSelectedFile(null)} className="text-violet-400 hover:text-violet-600">
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl bg-zinc-50 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/[0.08]">
+            <FileText className="w-4 h-4 text-zinc-500 dark:text-zinc-300" />
+            <span className="text-xs text-zinc-700 dark:text-zinc-200 truncate flex-1">{selectedFile.name}</span>
+            <button onClick={() => setSelectedFile(null)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -268,7 +270,7 @@ export default function AIChatPage() {
             size="icon"
             onClick={() => fileRef.current?.click()}
             disabled={loading}
-            className="h-9 w-9 shrink-0 text-zinc-400 hover:text-violet-600"
+            className="h-9 w-9 shrink-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-white"
           >
             <Paperclip className="w-4 h-4" />
           </Button>
@@ -291,13 +293,13 @@ export default function AIChatPage() {
             placeholder={selectedFile ? 'Press Enter to upload...' : 'Ask about your finances or upload a document...'}
             rows={1}
             disabled={loading}
-            className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 disabled:opacity-50"
+            className="flex-1 resize-none rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm px-4 py-2.5 text-sm text-zinc-900 dark:text-white/85 placeholder:text-zinc-400 dark:placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 disabled:opacity-50"
           />
           <Button
             size="icon"
             onClick={handleSend}
             disabled={loading || (!input.trim() && !selectedFile)}
-            className="h-9 w-9 shrink-0 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900"
+            className="h-9 w-9 shrink-0 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>
@@ -329,28 +331,28 @@ function TransactionReview({
   const expense = transactions.filter((t, i) => selected[i] && t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
+    <div className="rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100 dark:border-white/[0.06]">
         <div className="flex items-center gap-3 text-xs text-zinc-500">
           <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{count}</strong></span>
-          <span>Income: <strong className="text-emerald-600">{formatCurrency(income)}</strong></span>
+          <span>Income: <strong className="text-zinc-500 dark:text-zinc-300">{formatCurrency(income)}</strong></span>
           <span>Expense: <strong className="text-rose-600">{formatCurrency(expense)}</strong></span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => onToggleAll(msgId)} className="h-6 text-[10px] text-zinc-500">
           {selected.every(Boolean) ? 'Deselect all' : 'Select all'}
         </Button>
       </div>
-      <div className="max-h-[250px] overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+      <div className="max-h-[250px] overflow-y-auto divide-y divide-zinc-100 dark:divide-white/[0.05]">
         {transactions.map((t, i) => (
           <div
             key={i}
             onClick={() => onToggle(msgId, i)}
-            className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-white/[0.04] transition-colors ${
               !selected[i] ? 'opacity-40' : ''
             }`}
           >
             <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
-              selected[i] ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-300 dark:border-zinc-600'
+              selected[i] ? 'border-zinc-700 bg-zinc-700 dark:border-zinc-300 dark:bg-zinc-300' : 'border-zinc-300 dark:border-white/20'
             }`}>
               {selected[i] && <Check className="w-2.5 h-2.5 text-white" />}
             </div>
@@ -364,19 +366,19 @@ function TransactionReview({
               </span>
             </div>
             <span className={`text-xs font-semibold tabular-nums shrink-0 ${
-              t.type === 'income' ? 'text-emerald-600' : 'text-zinc-900 dark:text-zinc-100'
+              t.type === 'income' ? 'text-zinc-500 dark:text-zinc-300' : 'text-zinc-900 dark:text-zinc-100'
             }`}>
               {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
             </span>
           </div>
         ))}
       </div>
-      <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="px-3 py-2 border-t border-zinc-100 dark:border-white/[0.06]">
         <Button
           size="sm"
           onClick={() => onImport(msgId, transactions)}
           disabled={count === 0 || importing}
-          className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white gap-1.5"
+          className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white gap-1.5"
         >
           {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
           Import {count} transactions

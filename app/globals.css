@@ -84,79 +84,79 @@
 }
 
 .dark {
-  /* Background — near-black with cool violet undertone */
-  --background: oklch(0.09 0.005 277);
+  /* Background — pure near-black, no color tint */
+  --background: oklch(0.09 0 0);
   --foreground: oklch(0.95 0 0);
 
   /* Cards — glass surface */
-  --card: oklch(0.14 0.008 277 / 0.6);
+  --card: oklch(0.13 0 0 / 0.6);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.13 0.008 277);
+  --popover: oklch(0.13 0 0);
   --popover-foreground: oklch(0.95 0 0);
 
-  /* Primary — violet */
-  --primary: oklch(0.62 0.24 277);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Primary — near-white */
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.10 0 0);
 
   /* Secondary */
-  --secondary: oklch(0.18 0.008 277);
+  --secondary: oklch(0.16 0 0);
   --secondary-foreground: oklch(0.92 0 0);
 
   /* Muted */
-  --muted: oklch(0.18 0.006 277);
-  --muted-foreground: oklch(0.62 0 0);
+  --muted: oklch(0.16 0 0);
+  --muted-foreground: oklch(0.60 0 0);
 
-  /* Accent — violet tint bg */
-  --accent: oklch(0.62 0.24 277 / 0.15);
-  --accent-foreground: oklch(0.80 0.16 277);
+  /* Accent — subtle white tint */
+  --accent: oklch(1 0 0 / 0.06);
+  --accent-foreground: oklch(0.92 0 0);
 
   --destructive: oklch(0.65 0.22 22);
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.10);
-  --ring: oklch(0.62 0.24 277 / 0.6);
+  --ring: oklch(1 0 0 / 0.25);
 
   /* Charts */
-  --chart-1: oklch(0.62 0.24 277);
+  --chart-1: oklch(0.75 0 0);
   --chart-2: oklch(0.67 0.17 142);
   --chart-3: oklch(0.63 0.22 22);
   --chart-4: oklch(0.72 0.18 55);
   --chart-5: oklch(0.65 0.20 200);
 
   /* Sidebar */
-  --sidebar: oklch(0.09 0.005 277 / 0.85);
+  --sidebar: oklch(0.09 0 0 / 0.85);
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.62 0.24 277);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(1 0 0 / 0.08);
+  --sidebar-primary: oklch(0.92 0 0);
+  --sidebar-primary-foreground: oklch(0.10 0 0);
+  --sidebar-accent: oklch(1 0 0 / 0.06);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 0.06);
-  --sidebar-ring: oklch(0.62 0.24 277);
+  --sidebar-ring: oklch(1 0 0 / 0.25);
 
   --radius: 0.75rem;
 }
 
-/* Glass utility classes */
-.glass {
+/* Glass utility classes — registered as @utility so dark:glass variant works */
+@utility glass {
   background: oklch(1 0 0 / 0.04);
   border: 1px solid oklch(1 0 0 / 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-.glass-strong {
+@utility glass-strong {
   background: oklch(1 0 0 / 0.07);
   border: 1px solid oklch(1 0 0 / 0.12);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
 }
 
-/* Violet glow */
-.glow-violet {
-  box-shadow: 0 0 30px oklch(0.62 0.24 277 / 0.25);
+/* Subtle white glow */
+@utility glow-violet {
+  box-shadow: 0 0 30px oklch(1 0 0 / 0.08);
 }
 
-.glow-violet-sm {
-  box-shadow: 0 0 16px oklch(0.62 0.24 277 / 0.18);
+@utility glow-violet-sm {
+  box-shadow: 0 0 16px oklch(1 0 0 / 0.06);
 }
 
 @layer base {

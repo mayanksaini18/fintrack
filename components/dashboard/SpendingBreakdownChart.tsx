@@ -73,7 +73,7 @@ export default function SpendingBreakdownChart() {
 
       <div className="flex justify-center mb-5">
         <ResponsiveContainer width={160} height={160}>
-          <PieChart>
+          <PieChart style={{ background: 'transparent' }}>
             <Pie
               data={breakdown}
               dataKey="total"
@@ -102,13 +102,13 @@ export default function SpendingBreakdownChart() {
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: palette[index % palette.length] }}
               />
-              <span className="text-xs text-zinc-600 dark:text-zinc-400 truncate">{item.category}</span>
+              <span className="text-xs text-zinc-600 dark:text-white/60 truncate">{item.category}</span>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="text-[11px] text-zinc-400 dark:text-zinc-500 tabular-nums">
+              <span className="text-[11px] text-zinc-400 dark:text-white/30 tabular-nums">
                 {item.percentage.toFixed(0)}%
               </span>
-              <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100 tabular-nums w-16 text-right">
+              <span className="text-xs font-medium text-zinc-900 dark:text-white/85 tabular-nums w-16 text-right">
                 {formatCurrency(item.total)}
               </span>
             </div>
