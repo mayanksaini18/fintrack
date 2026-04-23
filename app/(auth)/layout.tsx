@@ -11,9 +11,8 @@ export default function AuthLayout({
       <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
       {/* Gradient blobs */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-violet-400/20 dark:bg-violet-600/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/8 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-400/10 dark:bg-violet-500/5 rounded-full blur-3xl" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-zinc-400/10 dark:bg-white/[0.02] rounded-full blur-3xl" />
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-zinc-400/10 dark:bg-white/[0.02] rounded-full blur-3xl" />
 
       {/* Floating finance icons */}
       <div className="absolute top-[12%] left-[8%] text-4xl opacity-20 dark:opacity-10 animate-bounce" style={{ animationDuration: '4s' }}>💰</div>
@@ -27,7 +26,7 @@ export default function AuthLayout({
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <Logo size={40} />
-          <span className="text-2xl font-bold text-zinc-900 dark:bg-gradient-to-r dark:from-white dark:via-violet-100 dark:to-violet-300 dark:bg-clip-text dark:text-transparent tracking-tight">Kharcha</span>
+          <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Kharcha</span>
         </div>
 
         {/* Card */}
