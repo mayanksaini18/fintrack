@@ -196,7 +196,7 @@ export default function BudgetList() {
                   <span className="text-zinc-500">
                     {formatCurrency(budget.spent)} / {formatCurrency(budget.monthlyLimit)}
                   </span>
-                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-violet-600 dark:text-violet-400'}`}>
                     {isOver ? `${formatCurrency(Math.abs(remaining))} over` : `${formatCurrency(remaining)} left`}
                   </span>
                 </div>
@@ -208,7 +208,7 @@ export default function BudgetList() {
 
       {/* Edit dialog */}
       <Dialog open={!!editId} onOpenChange={(v) => !v && setEditId(null)}>
-        <DialogContent className="sm:max-w-xs dark:bg-zinc-900 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-xs dark:bg-[#0f0f14] dark:border-white/[0.08]">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Edit Budget Limit</DialogTitle>
           </DialogHeader>
@@ -219,14 +219,14 @@ export default function BudgetList() {
               value={editLimit}
               onChange={(e) => setEditLimit(e.target.value)}
               min={1}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
           </div>
           <DialogFooter className="gap-2 mt-1">
-            <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+            <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
               Cancel
             </Button>
-            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
               Save
             </Button>
           </DialogFooter>
@@ -271,7 +271,7 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-xs dark:bg-zinc-900 dark:border-zinc-800">
+      <DialogContent className="sm:max-w-xs dark:bg-[#0f0f14] dark:border-white/[0.08]">
         <DialogHeader>
           <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Set Category Budget</DialogTitle>
         </DialogHeader>
@@ -279,7 +279,7 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Category</label>
             <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-              <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+              <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:bg-white/[0.06]">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -304,16 +304,16 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
               value={limit}
               onChange={(e) => setLimit(e.target.value)}
               min={1}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
             {errors.limit && <p className="text-[11px] text-rose-500">{errors.limit}</p>}
           </div>
         </div>
         <DialogFooter className="gap-2 mt-1">
-          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
             Set Budget
           </Button>
         </DialogFooter>
