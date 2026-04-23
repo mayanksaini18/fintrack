@@ -123,7 +123,7 @@ export default function BudgetList() {
         <Button
           size="sm"
           onClick={() => setShowAdd(true)}
-          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
+          className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
         >
           <Plus className="w-3.5 h-3.5" />
           Set Budget
@@ -186,7 +186,7 @@ export default function BudgetList() {
                 <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden mb-2">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
-                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-400' : 'bg-violet-500'
+                      isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-400' : 'bg-zinc-600 dark:bg-zinc-400'
                     }`}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />
@@ -196,7 +196,7 @@ export default function BudgetList() {
                   <span className="text-zinc-500">
                     {formatCurrency(budget.spent)} / {formatCurrency(budget.monthlyLimit)}
                   </span>
-                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-violet-600 dark:text-violet-400'}`}>
+                  <span className={`font-medium ${isOver ? 'text-rose-600' : 'text-zinc-700 dark:text-zinc-200'}`}>
                     {isOver ? `${formatCurrency(Math.abs(remaining))} over` : `${formatCurrency(remaining)} left`}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export default function BudgetList() {
             <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
               Cancel
             </Button>
-            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
+            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
               Save
             </Button>
           </DialogFooter>
@@ -313,7 +313,7 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
             Set Budget
           </Button>
         </DialogFooter>

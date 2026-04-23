@@ -35,7 +35,7 @@ const FREQUENCY_LABELS: Record<Frequency, string> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Salary: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',
+  Salary: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
   Freelance: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
   Food: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
   Transport: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
@@ -130,7 +130,7 @@ export default function RecurringList() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/[0.06] dark:backdrop-blur-sm text-sm border dark:border-white/[0.08]">
             <CalendarClock className="w-4 h-4 text-zinc-500" />
             <span className="text-zinc-600 dark:text-zinc-400">Monthly net:</span>
-            <span className={`font-semibold ${totalMonthly >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            <span className={`font-semibold ${totalMonthly >= 0 ? 'text-zinc-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
               {totalMonthly >= 0 ? '+' : ''}{formatCurrency(Math.round(totalMonthly))}
             </span>
           </div>
@@ -152,7 +152,7 @@ export default function RecurringList() {
           <Button
             size="sm"
             onClick={() => setShowAdd(true)}
-            className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
+            className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Recurring
@@ -181,7 +181,7 @@ export default function RecurringList() {
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'income' ? 'bg-violet-500' : 'bg-rose-500'}`} />
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'income' ? 'bg-zinc-400' : 'bg-rose-500'}`} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-zinc-900 dark:text-white/90 truncate">
@@ -381,7 +381,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
             Add
           </Button>
         </DialogFooter>

@@ -320,8 +320,8 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
             className={cn(
               'border-2 border-dashed rounded-xl p-10 flex flex-col items-center gap-3 cursor-pointer transition-colors',
               dragging
-                ? 'border-violet-500/50 bg-violet-50 dark:bg-violet-500/5'
-                : 'border-zinc-200 dark:border-white/[0.08] hover:border-zinc-400 dark:hover:border-violet-500/30'
+                ? 'border-zinc-400 bg-zinc-50 dark:bg-white/[0.06]'
+                : 'border-zinc-200 dark:border-white/[0.08] hover:border-zinc-400 dark:hover:border-white/20'
             )}
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -333,7 +333,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
             }}
           >
             <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-violet-500/10 dark:border dark:border-violet-500/20 flex items-center justify-center">
-              <Upload className="w-5 h-5 text-violet-400" />
+              <Upload className="w-5 h-5 text-zinc-400" />
             </div>
             <div className="text-center">
               <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -362,7 +362,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
                 <p className="text-[11px] text-zinc-400 mt-0.5">Detected: {detectedFormat}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0 text-[11px] font-medium">
-                <span className="text-violet-600 dark:text-violet-400">+{incomeCount} income</span>
+                <span className="text-violet-600 dark:text-zinc-400">+{incomeCount} income</span>
                 <span className="text-zinc-500">{expenseCount} expenses</span>
                 <span className="text-zinc-400">{parsed.length} total</span>
               </div>
@@ -415,7 +415,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
                         <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{row.category}</td>
                         <td className={cn(
                           'px-3 py-2 text-right font-medium tabular-nums',
-                          row.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-800 dark:text-zinc-200'
+                          row.type === 'income' ? 'text-violet-600 dark:text-zinc-400' : 'text-zinc-800 dark:text-zinc-200'
                         )}>
                           {row.type === 'income' ? '+' : '−'}₹{row.amount.toLocaleString('en-IN')}
                         </td>
@@ -446,7 +446,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
           </Button>
           {step === 'preview' && parsed.length > 0 && (
             <Button size="sm" onClick={handleImport}
-              className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white gap-1.5">
+              className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               Import {parsed.length} transactions
             </Button>
