@@ -63,7 +63,7 @@ export default function Header() {
                     className={cn(
                       'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150',
                       active
-                        ? 'bg-zinc-100 dark:bg-violet-500/15 dark:border dark:border-violet-500/20 text-zinc-900 dark:text-violet-200 font-medium'
+                        ? 'bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-medium'
                         : 'text-zinc-500 dark:text-white/40 hover:text-zinc-900 dark:hover:text-white/80 hover:bg-zinc-50 dark:hover:bg-white/[0.05]'
                     )}
                   >
@@ -92,7 +92,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white">
+              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
                 Sign up
               </Button>
             </Link>
