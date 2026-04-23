@@ -411,13 +411,13 @@ export default function InsightsPanel() {
                   <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{src.source}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] text-zinc-400 tabular-nums">{src.percentage}%</span>
-                    <span className="text-sm font-semibold text-emerald-600 tabular-nums w-20 text-right">
+                    <span className="text-sm font-semibold text-violet-600 dark:text-violet-400 tabular-nums w-20 text-right">
                       {formatCurrency(src.total)}
                     </span>
                   </div>
                 </div>
                 <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${src.percentage}%` }} />
+                  <div className="h-1.5 rounded-full bg-violet-500" style={{ width: `${src.percentage}%` }} />
                 </div>
               </div>
             ))}
