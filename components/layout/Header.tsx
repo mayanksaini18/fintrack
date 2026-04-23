@@ -92,7 +92,7 @@ export default function Header() {
               </Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+              <Button size="sm" className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white">
                 Sign up
               </Button>
             </Link>
