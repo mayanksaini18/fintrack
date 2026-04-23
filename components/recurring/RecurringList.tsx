@@ -35,7 +35,7 @@ const FREQUENCY_LABELS: Record<Frequency, string> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Salary: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+  Salary: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',
   Freelance: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
   Food: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
   Transport: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400',
