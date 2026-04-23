@@ -73,7 +73,7 @@ export default function SpendingBreakdownChart() {
 
       <div className="flex justify-center mb-5">
         <ResponsiveContainer width={160} height={160}>
-          <PieChart>
+          <PieChart style={{ background: 'transparent' }}>
             <Pie
               data={breakdown}
               dataKey="total"

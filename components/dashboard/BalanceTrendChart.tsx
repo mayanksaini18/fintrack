@@ -116,7 +116,7 @@ export default function BalanceTrendChart() {
 
       <div className="mt-5">
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
             <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="month"

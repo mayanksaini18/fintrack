@@ -268,7 +268,7 @@ export default function InsightsPanel() {
         </div>
         <div className="mt-5">
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <BarChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: string) => v.split(' ')[0]} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} width={42} />
@@ -286,7 +286,7 @@ export default function InsightsPanel() {
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Savings Rate Over Time</p>
           <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">Monthly savings as % of income</p>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <LineChart data={monthlyBreakdown} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: string) => v.split(' ')[0]} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}%`} width={36} />
@@ -303,7 +303,7 @@ export default function InsightsPanel() {
           <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-0.5">Spending by Day of Week</p>
           <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-5">Average spend per transaction</p>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={weekdaySpending} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <BarChart data={weekdaySpending} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} style={{ background: 'transparent' }}>
               <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: axisColor }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} width={36} />
