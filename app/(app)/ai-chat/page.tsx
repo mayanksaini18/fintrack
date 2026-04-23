@@ -331,28 +331,28 @@ function TransactionReview({
   const expense = transactions.filter((t, i) => selected[i] && t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
+    <div className="rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:backdrop-blur-sm overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100 dark:border-white/[0.06]">
         <div className="flex items-center gap-3 text-xs text-zinc-500">
           <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{count}</strong></span>
-          <span>Income: <strong className="text-emerald-600">{formatCurrency(income)}</strong></span>
+          <span>Income: <strong className="text-violet-600 dark:text-violet-400">{formatCurrency(income)}</strong></span>
           <span>Expense: <strong className="text-rose-600">{formatCurrency(expense)}</strong></span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => onToggleAll(msgId)} className="h-6 text-[10px] text-zinc-500">
           {selected.every(Boolean) ? 'Deselect all' : 'Select all'}
         </Button>
       </div>
-      <div className="max-h-[250px] overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+      <div className="max-h-[250px] overflow-y-auto divide-y divide-zinc-100 dark:divide-white/[0.05]">
         {transactions.map((t, i) => (
           <div
             key={i}
             onClick={() => onToggle(msgId, i)}
-            className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-white/[0.04] transition-colors ${
               !selected[i] ? 'opacity-40' : ''
             }`}
           >
             <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${
-              selected[i] ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-300 dark:border-zinc-600'
+              selected[i] ? 'border-violet-500 bg-violet-500' : 'border-zinc-300 dark:border-white/20'
             }`}>
               {selected[i] && <Check className="w-2.5 h-2.5 text-white" />}
             </div>
@@ -366,19 +366,19 @@ function TransactionReview({
               </span>
             </div>
             <span className={`text-xs font-semibold tabular-nums shrink-0 ${
-              t.type === 'income' ? 'text-emerald-600' : 'text-zinc-900 dark:text-zinc-100'
+              t.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'
             }`}>
               {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
             </span>
           </div>
         ))}
       </div>
-      <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="px-3 py-2 border-t border-zinc-100 dark:border-white/[0.06]">
         <Button
           size="sm"
           onClick={() => onImport(msgId, transactions)}
           disabled={count === 0 || importing}
-          className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white gap-1.5"
+          className="w-full h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white gap-1.5"
         >
           {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
           Import {count} transactions
