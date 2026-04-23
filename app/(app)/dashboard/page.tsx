@@ -30,7 +30,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
       {!isSignedIn && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-500/[0.07] border border-amber-200/60 dark:border-amber-500/20 dark:backdrop-blur-sm">
           <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <p className="text-sm text-amber-800 dark:text-amber-300">
             You&apos;re viewing demo data.{' '}
