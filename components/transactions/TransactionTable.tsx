@@ -43,7 +43,7 @@ const CATEGORIES: Category[] = [
 const PAGE_SIZE = 10;
 
 const CATEGORY_DOT: Record<string, string> = {
-  Salary: 'bg-emerald-500',
+  Salary: 'bg-violet-500',
   Freelance: 'bg-teal-500',
   Food: 'bg-amber-500',
   Transport: 'bg-sky-500',
@@ -222,7 +222,7 @@ export default function TransactionTable() {
                       checked={allPageSelected}
                       ref={(el) => { if (el) el.indeterminate = somePageSelected && !allPageSelected; }}
                       onChange={toggleSelectAll}
-                      className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+                      className="w-3.5 h-3.5 rounded cursor-pointer accent-violet-600 dark:accent-violet-400"
                     />
                   </TableHead>
                 )}
@@ -260,7 +260,7 @@ export default function TransactionTable() {
                           type="checkbox"
                           checked={selected.has(tx.id)}
                           onChange={() => toggleSelect(tx.id)}
-                          className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+                          className="w-3.5 h-3.5 rounded cursor-pointer accent-violet-600 dark:accent-violet-400"
                         />
                       </TableCell>
                     )}
@@ -279,14 +279,14 @@ export default function TransactionTable() {
                     <TableCell className="py-3.5">
                       <span className={cn(
                         'text-[11px] font-medium uppercase tracking-wide',
-                        tx.type === 'income' ? 'text-emerald-600' : 'text-zinc-400 dark:text-zinc-500'
+                        tx.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'
                       )}>
                         {tx.type}
                       </span>
                     </TableCell>
                     <TableCell className={cn(
                       'text-sm font-semibold text-right tabular-nums py-3.5',
-                      tx.type === 'income' ? 'text-emerald-600' : 'text-zinc-900 dark:text-zinc-100'
+                      tx.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'
                     )}>
                       {tx.type === 'income' ? '+' : '−'}
                       {formatCurrency(tx.amount)}
