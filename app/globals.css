@@ -135,15 +135,15 @@
   --radius: 0.75rem;
 }
 
-/* Glass utility classes */
-.glass {
+/* Glass utility classes — registered as @utility so dark:glass variant works */
+@utility glass {
   background: oklch(1 0 0 / 0.04);
   border: 1px solid oklch(1 0 0 / 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
-.glass-strong {
+@utility glass-strong {
   background: oklch(1 0 0 / 0.07);
   border: 1px solid oklch(1 0 0 / 0.12);
   backdrop-filter: blur(32px);
@@ -151,11 +151,11 @@
 }
 
 /* Violet glow */
-.glow-violet {
+@utility glow-violet {
   box-shadow: 0 0 30px oklch(0.62 0.24 277 / 0.25);
 }
 
-.glow-violet-sm {
+@utility glow-violet-sm {
   box-shadow: 0 0 16px oklch(0.62 0.24 277 / 0.18);
 }
 
