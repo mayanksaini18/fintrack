@@ -130,7 +130,7 @@ export default function RecurringList() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/[0.06] dark:backdrop-blur-sm text-sm border dark:border-white/[0.08]">
             <CalendarClock className="w-4 h-4 text-zinc-500" />
             <span className="text-zinc-600 dark:text-zinc-400">Monthly net:</span>
-            <span className={`font-semibold ${totalMonthly >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            <span className={`font-semibold ${totalMonthly >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {totalMonthly >= 0 ? '+' : ''}{formatCurrency(Math.round(totalMonthly))}
             </span>
           </div>
@@ -181,7 +181,7 @@ export default function RecurringList() {
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${item.type === 'income' ? 'bg-violet-500' : 'bg-rose-500'}`} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-zinc-900 dark:text-white/90 truncate">
@@ -204,7 +204,7 @@ export default function RecurringList() {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className={`text-sm font-semibold tabular-nums ${item.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <span className={`text-sm font-semibold tabular-nums ${item.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                     {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
                   </span>
                   <div className="flex items-center gap-1">
@@ -287,7 +287,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="sm:max-w-sm dark:bg-zinc-900 dark:border-zinc-800">
+      <DialogContent className="sm:max-w-sm dark:bg-[#0f0f14] dark:border-white/[0.08]">
         <DialogHeader>
           <DialogTitle className="text-sm font-semibold dark:text-zinc-100">Add Recurring Transaction</DialogTitle>
         </DialogHeader>
@@ -299,7 +299,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
               placeholder="e.g. Netflix subscription"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
             {errors.description && <p className="text-[11px] text-rose-500">{errors.description}</p>}
           </div>
@@ -312,7 +312,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
               min={1}
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+              className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
             />
             {errors.amount && <p className="text-[11px] text-rose-500">{errors.amount}</p>}
           </div>
@@ -321,7 +321,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Category</label>
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Category })}>
-                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,7 +336,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Type</label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as TransactionType })}>
-                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -352,7 +352,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Frequency</label>
               <Select value={form.frequency} onValueChange={(v) => setForm({ ...form, frequency: v as Frequency })}>
-                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -370,7 +370,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                className="h-8 text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200"
               />
               {errors.startDate && <p className="text-[11px] text-rose-500">{errors.startDate}</p>}
             </div>
@@ -378,10 +378,10 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
         </div>
 
         <DialogFooter className="gap-2 mt-1">
-          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+          <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-900 text-white">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-violet-600 hover:bg-violet-700 text-white">
             Add
           </Button>
         </DialogFooter>
