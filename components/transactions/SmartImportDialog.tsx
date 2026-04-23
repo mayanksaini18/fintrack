@@ -209,7 +209,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
 
             <div className="flex gap-3 text-xs text-zinc-500 px-1">
               <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{selectedCount}</strong></span>
-              <span>Income: <strong className="text-violet-600 dark:text-violet-400">{formatCurrency(totalIncome)}</strong></span>
+              <span>Income: <strong className="text-zinc-700 dark:text-zinc-300">{formatCurrency(totalIncome)}</strong></span>
               <span>Expense: <strong className="text-rose-600">{formatCurrency(totalExpense)}</strong></span>
             </div>
 
@@ -238,7 +238,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
                     </div>
                     <span className="text-xs text-zinc-400">{new Date(t.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
-                  <span className={`text-sm font-semibold tabular-nums shrink-0 ${t.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <span className={`text-sm font-semibold tabular-nums shrink-0 ${t.type === 'income' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-900 dark:text-zinc-100'}`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </span>
                 </div>

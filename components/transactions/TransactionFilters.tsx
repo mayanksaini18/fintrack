@@ -40,7 +40,7 @@ export default function TransactionFilters() {
           placeholder="Search transactions..."
           value={filters.search}
           onChange={(e) => setFilter('search', e.target.value)}
-          className="pl-9 h-8 text-sm border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-violet-500/50 dark:focus-visible:ring-violet-500/40 backdrop-blur-sm"
+          className="pl-9 h-8 text-sm border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-zinc-400/50 dark:focus-visible:ring-white/20 backdrop-blur-sm"
         />
       </div>
 

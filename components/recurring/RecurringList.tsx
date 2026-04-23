@@ -204,7 +204,7 @@ export default function RecurringList() {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className={`text-sm font-semibold tabular-nums ${item.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <span className={`text-sm font-semibold tabular-nums ${item.type === 'income' ? 'text-zinc-700 dark:text-white' : 'text-zinc-900 dark:text-zinc-100'}`}>
                     {item.type === 'income' ? '+' : '-'}{formatCurrency(item.amount)}
                   </span>
                   <div className="flex items-center gap-1">

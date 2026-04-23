@@ -26,10 +26,10 @@ export default function AIInsights() {
 
   return (
     <div className="rounded-2xl border border-zinc-200/80 dark:border-white/[0.08] bg-white dark:glass overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-white/[0.06] bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-500/[0.06] dark:to-blue-500/[0.04]">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-white/[0.06] bg-gradient-to-r from-zinc-50 to-zinc-50 dark:from-white/[0.03] dark:to-white/[0.03]">
         <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 rounded-lg bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-white/[0.08] flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-300" />
           </div>
           <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">AI Insights</h3>
         </div>
@@ -38,7 +38,7 @@ export default function AIInsights() {
           size="sm"
           onClick={fetchInsights}
           disabled={loading}
-          className="h-7 text-xs gap-1.5 text-violet-600 dark:text-violet-400 hover:text-violet-700 hover:bg-violet-100/50 dark:hover:bg-violet-900/30"
+          className="h-7 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-white/[0.06]"
         >
           {loading ? (
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />

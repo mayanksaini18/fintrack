@@ -169,7 +169,7 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/60 dark:hover:text-white">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_14px_rgba(139,92,246,0.35)]">
+          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
             Add
           </Button>
         </DialogFooter>

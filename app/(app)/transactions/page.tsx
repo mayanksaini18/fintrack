@@ -31,7 +31,7 @@ export default function TransactionsPage() {
           size="sm"
           variant="outline"
           onClick={() => setShowSmartImport(true)}
-          className="h-8 text-xs gap-1.5 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+          className="h-8 text-xs gap-1.5 border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.06]"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Smart Import

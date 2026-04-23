@@ -43,11 +43,11 @@ const CATEGORIES: Category[] = [
 const PAGE_SIZE = 10;
 
 const CATEGORY_DOT: Record<string, string> = {
-  Salary: 'bg-violet-500',
+  Salary: 'bg-zinc-500',
   Freelance: 'bg-teal-500',
   Food: 'bg-amber-500',
   Transport: 'bg-sky-500',
-  Entertainment: 'bg-violet-500',
+  Entertainment: 'bg-zinc-500',
   Shopping: 'bg-pink-500',
   Healthcare: 'bg-rose-500',
   Utilities: 'bg-orange-500',
@@ -150,7 +150,7 @@ export default function TransactionTable() {
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:glass dark:border-violet-500/20 text-white dark:text-white">
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:glass dark:border-white/[0.12] text-white dark:text-white">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-4 h-4" />
             <span className="text-sm font-medium">{selected.size} selected</span>
@@ -200,7 +200,7 @@ export default function TransactionTable() {
             </Button>
             <Button
               size="sm"
-              className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white font-medium rounded-lg px-3 dark:shadow-[0_0_16px_rgba(139,92,246,0.35)]"
+              className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white font-medium rounded-lg px-3"
               onClick={() => setAddOpen(true)}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ export default function TransactionTable() {
                       checked={allPageSelected}
                       ref={(el) => { if (el) el.indeterminate = somePageSelected && !allPageSelected; }}
                       onChange={toggleSelectAll}
-                      className="w-3.5 h-3.5 rounded cursor-pointer accent-violet-600 dark:accent-violet-400"
+                      className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
                     />
                   </TableHead>
                 )}
@@ -251,7 +251,7 @@ export default function TransactionTable() {
                     key={tx.id}
                     className={cn(
                       'border-zinc-100 dark:border-white/[0.05] hover:bg-zinc-50/60 dark:hover:bg-white/[0.03] transition-colors',
-                      selected.has(tx.id) && 'bg-zinc-50 dark:bg-violet-500/10'
+                      selected.has(tx.id) && 'bg-zinc-50 dark:bg-white/[0.04]'
                     )}
                   >
                     {isAdmin && (
@@ -260,7 +260,7 @@ export default function TransactionTable() {
                           type="checkbox"
                           checked={selected.has(tx.id)}
                           onChange={() => toggleSelect(tx.id)}
-                          className="w-3.5 h-3.5 rounded cursor-pointer accent-violet-600 dark:accent-violet-400"
+                          className="w-3.5 h-3.5 rounded cursor-pointer accent-zinc-900 dark:accent-zinc-100"
                         />
                       </TableCell>
                     )}
@@ -279,14 +279,14 @@ export default function TransactionTable() {
                     <TableCell className="py-3.5">
                       <span className={cn(
                         'text-[11px] font-medium uppercase tracking-wide',
-                        tx.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-400 dark:text-zinc-500'
+                        tx.type === 'income' ? 'text-zinc-900 dark:text-white' : 'text-zinc-400 dark:text-zinc-500'
                       )}>
                         {tx.type}
                       </span>
                     </TableCell>
                     <TableCell className={cn(
                       'text-sm font-semibold text-right tabular-nums py-3.5',
-                      tx.type === 'income' ? 'text-violet-600 dark:text-violet-400' : 'text-zinc-900 dark:text-zinc-100'
+                      tx.type === 'income' ? 'text-zinc-900 dark:text-white' : 'text-zinc-900 dark:text-zinc-100'
                     )}>
                       {tx.type === 'income' ? '+' : '−'}
                       {formatCurrency(tx.amount)}
@@ -425,7 +425,7 @@ export default function TransactionTable() {
             <Button variant="outline" size="sm" onClick={() => setEditTx(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-violet-600 dark:hover:bg-violet-500 text-white dark:shadow-[0_0_14px_rgba(139,92,246,0.35)]">
+            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
               Save
             </Button>
           </DialogFooter>

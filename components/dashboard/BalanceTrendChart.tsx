@@ -56,7 +56,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 }
 
 const LINES = [
-  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#a78bfa' },
+  { key: 'balance', name: 'Balance', colorLight: '#18181b', colorDark: '#e4e4e7' },
   { key: 'income', name: 'Income', colorLight: '#10b981', colorDark: '#34d399' },
   { key: 'expenses', name: 'Expenses', colorLight: '#f43f5e', colorDark: '#fb7185' },
 ];
@@ -103,7 +103,7 @@ export default function BalanceTrendChart() {
                 onClick={() => setRange(r.value)}
                 className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
                   range === r.value
-                    ? 'bg-zinc-900 dark:bg-violet-600 text-white dark:shadow-[0_0_10px_rgba(139,92,246,0.4)]'
+                    ? 'bg-zinc-900 dark:bg-zinc-700 text-white'
                     : 'text-zinc-500 dark:text-white/40 hover:text-zinc-700 dark:hover:text-white/70'
                 }`}
               >
