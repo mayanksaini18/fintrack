@@ -56,7 +56,7 @@ describe('POST /api/parse-document', () => {
     const res = await upload('Date,Description,Amount\n05/10/2026,Paid to Swiggy,-249.50');
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ transactions: parsed.transactions, filename: 'statement.csv', truncated: false });
+    expect(await res.json()).toEqual({ transactions: parsed.transactions, filename: 'statement.csv', truncated: false, unreadable: 0 });
   });
 
   it('reads well past the old 15,000-character cut-off', async () => {
@@ -115,6 +115,22 @@ describe('POST /api/parse-document', () => {
     const sent = JSON.stringify(requests[0].body);
     expect(sent).toContain('Swiggy order');
     expect(sent).toContain('Uber trip');
+  });
+
+  it('leaves out and counts rows whose dates the model got wrong', async () => {
+    const good = parsed.transactions[0];
+    claudeReplies(JSON.stringify({ transactions: [good, { ...good, date: '05/10/2026' }, { ...good, date: '0026-10-05' }] }));
+
+    const body = await (await upload('Date,Description,Amount\n05/10/2026,Paid to Swiggy,-249.50')).json();
+
+    expect(body.transactions).toEqual([good]);
+    expect(body.unreadable).toBe(2);
+  });
+
+  it('keeps a very long file name out of the prompt', async () => {
+    await upload('Date,Description,Amount\n05/10/2026,Paid to Swiggy,-249.50', `${'a'.repeat(5000)}.csv`);
+
+    expect(JSON.stringify(requests[0].body)).not.toContain('a'.repeat(200));
   });
 
   it('requires a signed-in user', async () => {

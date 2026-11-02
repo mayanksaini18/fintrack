@@ -16,6 +16,16 @@ export function isoOrNull(date: Date): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+// ₹100 crore: far above any personal transaction, and safely inside the database's integer column
+export const MAX_AMOUNT = 1_000_000_000;
+const amount = z.number().positive().int().max(MAX_AMOUNT);
+
+// Postgres refuses NUL characters in text, which would fail the whole save
+const description = z
+  .string()
+  .transform((s) => s.replace(/\0/g, ''))
+  .pipe(z.string().min(1).max(200));
+
 const dateString = z
   .string()
   .min(1)
@@ -23,24 +33,24 @@ const dateString = z
 
 export const transactionSchema = z.object({
   date: dateString,
-  amount: z.number().positive().int(),
+  amount,
   category: z.enum(CATEGORIES),
   type: z.enum(TYPES),
-  description: z.string().min(1).max(200),
+  description,
 });
 
 export const transactionUpdateSchema = transactionSchema.partial();
 
 export const budgetSchema = z.object({
   category: z.enum(CATEGORIES),
-  monthlyLimit: z.number().positive().int(),
+  monthlyLimit: amount,
 });
 
 export const recurringSchema = z.object({
-  amount: z.number().positive().int(),
+  amount,
   category: z.enum(CATEGORIES),
   type: z.enum(TYPES),
-  description: z.string().min(1).max(200),
+  description,
   frequency: z.enum(FREQUENCIES),
   startDate: dateString,
 });

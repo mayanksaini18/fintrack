@@ -11,11 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Loader2, Check, X, Sparkles, AlertTriangle } from 'lucide-react';
+import { Upload, FileText, Loader2, Check, Sparkles, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Transaction } from '@/types';
 import { toast } from 'sonner';
 import { describeImport } from '@/lib/statement-import';
+import { apiFetch } from '@/lib/api';
 
 interface ParsedTransaction {
   date: string;
@@ -53,10 +54,8 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/parse-document', { method: 'POST', body: formData });
+      const res = await apiFetch('/api/parse-document', { method: 'POST', body: formData });
       const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Failed to parse');
 
       const withSelection = data.transactions.map((t: Omit<ParsedTransaction, 'selected'>) => ({
         ...t,
@@ -65,6 +64,9 @@ export default function SmartImportDialog({ open, onClose }: Props) {
       setParsed(withSelection);
       setTruncated(Boolean(data.truncated));
       setStep('review');
+      if (data.unreadable > 0) {
+        toast.info(`${data.unreadable} row${data.unreadable > 1 ? 's' : ''} had a date that couldn't be read and ${data.unreadable > 1 ? 'were' : 'was'} left out`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse document');
       setStep('upload');
@@ -99,22 +101,22 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     if (selected.length === 0) return;
 
     setImporting(true);
-    const txns: Omit<Transaction, 'id'>[] = selected.map((t) => ({
-      date: new Date(t.date).toISOString(),
-      amount: t.amount,
-      type: t.type,
-      category: t.category as Transaction['category'],
-      description: t.description,
-    }));
-
     try {
+      const txns: Omit<Transaction, 'id'>[] = selected.map((t) => ({
+        date: new Date(t.date).toISOString(),
+        amount: t.amount,
+        type: t.type,
+        category: t.category as Transaction['category'],
+        description: t.description,
+      }));
       const result = await importTransactions(txns);
       (result.inserted > 0 ? toast.success : toast.info)(describeImport(result));
       handleClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
     }
-    setImporting(false);
   }
 
   function handleClose() {

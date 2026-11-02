@@ -66,6 +66,20 @@ describe('GET /api/ai-insights', () => {
     expect(await res.json()).toEqual({ insights: '- **Food** is 2% of your income' });
   });
 
+  it("still works when one transaction's date can't be read", async () => {
+    await (state.db as Awaited<ReturnType<typeof createTestDb>>).insert(transactions).values({
+      id: 'typo',
+      userId: state.userId!,
+      date: new Date('0026-10-04T00:00:00.000Z'),
+      amount: 999,
+      category: 'Food',
+      type: 'expense',
+      description: 'Year typo',
+    });
+
+    expect((await GET()).status).toBe(200);
+  });
+
   it('explains when Claude declines', async () => {
     claudeReplies('', 'refusal');
 

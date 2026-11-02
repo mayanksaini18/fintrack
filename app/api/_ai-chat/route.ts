@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      const text = await extractTextFromFile(file);
+      const { text } = await extractTextFromFile(file);
       if (!text.trim()) {
         return Response.json({ error: 'Could not extract text from file' }, { status: 400 });
       }

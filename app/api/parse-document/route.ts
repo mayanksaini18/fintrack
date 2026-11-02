@@ -6,6 +6,7 @@ import { transactions } from '@/lib/db/schema';
 
 import { auth } from '@clerk/nextjs/server';
 import { extractTextFromFile } from '@/lib/document-text';
+import { isUsableDate } from '@/lib/validation';
 
 // Reading a long statement can take a few minutes
 export const maxDuration = 300;
@@ -65,13 +66,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const text = await extractTextFromFile(file);
+    const { text, complete } = await extractTextFromFile(file, MAX_DOCUMENT_CHARS);
 
     if (!text.trim()) {
       return Response.json({ error: 'Could not extract text from file' }, { status: 400 });
     }
 
-    const truncated = text.length > MAX_DOCUMENT_CHARS;
+    const truncated = !complete || text.length > MAX_DOCUMENT_CHARS;
+    // Only the start of the name goes into the prompt, so a huge name can't get round the length limit
+    const name = file.name.slice(0, 100);
 
     const result = await generateText({
       model: AI_MODEL,
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
       maxOutputTokens: 32_000,
       output: Output.object({ schema: statementSchema }),
       system: SYSTEM_PROMPT,
-      prompt: `Parse transactions from this ${file.name} document:\n\n<document>\n${text.slice(0, MAX_DOCUMENT_CHARS)}\n</document>`,
+      prompt: `Parse transactions from this ${name} document:\n\n<document>\n${text.slice(0, MAX_DOCUMENT_CHARS)}\n</document>`,
     });
 
     // A refusal or a reply cut off at the output limit leaves no usable list. Depending on
@@ -87,7 +90,11 @@ export async function POST(request: Request) {
     if (result.finishReason === 'content-filter') return Response.json({ error: DECLINED }, { status: 422 });
     if (result.finishReason === 'length') return Response.json({ error: TOO_LONG }, { status: 422 });
 
-    return Response.json({ transactions: result.output.transactions, filename: file.name, truncated });
+    // A date the model got wrong would otherwise reach the import as an invalid or far-off date
+    const found = result.output.transactions;
+    const transactions = found.filter((t) => /^\d{4}-\d{2}-\d{2}$/.test(t.date) && isUsableDate(new Date(t.date)));
+
+    return Response.json({ transactions, filename: name, truncated, unreadable: found.length - transactions.length });
   } catch (error) {
     if (NoObjectGeneratedError.isInstance(error)) {
       if (error.finishReason === 'length') return Response.json({ error: TOO_LONG }, { status: 422 });

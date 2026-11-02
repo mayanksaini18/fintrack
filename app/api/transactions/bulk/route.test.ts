@@ -109,3 +109,18 @@ describe('POST /api/transactions/bulk dates', () => {
     expect(body).toMatchObject({ inserted: 1, invalid: 1 });
   });
 });
+
+describe('POST /api/transactions/bulk limits', () => {
+  it('counts a row with an amount too big for the database as invalid, and saves the rest', async () => {
+    const { status, body } = await importRows([row(), row({ amount: 512345678901, description: 'UPI ref read as amount' })]);
+
+    expect(status).toBe(201);
+    expect(body).toMatchObject({ inserted: 1, invalid: 1 });
+  });
+
+  it('saves descriptions with NUL characters removed', async () => {
+    await importRows([row({ description: 'Paid\u0000 to Swiggy' })]);
+
+    expect((await savedFor('user_a'))[0].description).toBe('Paid to Swiggy');
+  });
+});

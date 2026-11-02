@@ -13,12 +13,14 @@ export async function GET() {
   const { ok } = rateLimit(userId, 5, 60_000);
   if (!ok) return Response.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 });
 
-  const allTx = await db
+  const loaded = await db
     .select()
     .from(transactions)
     .where(eq(transactions.userId, userId))
     .orderBy(desc(transactions.date))
     .limit(200);
+  // A stored date that can't be read back would otherwise break the summary
+  const allTx = loaded.filter((t) => !Number.isNaN(t.date.getTime()));
 
   if (allTx.length < 3) {
     return Response.json({

@@ -3,7 +3,7 @@ import { transactions } from '@/lib/db/schema';
 import { auth } from '@clerk/nextjs/server';
 import { inArray, eq, and, gte, lt } from 'drizzle-orm';
 import { z } from 'zod';
-import { isUsableDate } from '@/lib/validation';
+import { isUsableDate, MAX_AMOUNT } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 const MAX_ROWS = 2000;
@@ -21,13 +21,13 @@ const rowSchema = z.object({
   amount: z.coerce
     .number()
     .transform(Math.round)
-    .refine((n) => Number.isFinite(n) && n >= 1),
+    .refine((n) => Number.isFinite(n) && n >= 1 && n <= MAX_AMOUNT),
   category: z.string().transform((c): Category => (CATEGORIES.includes(c as Category) ? (c as Category) : 'Other')),
   type: z.string().transform((t): 'income' | 'expense' => (t === 'income' ? 'income' : 'expense')),
   description: z
     .string()
-    .trim()
-    .min(1)
+    .transform((d) => d.replace(/\0/g, '').trim())
+    .pipe(z.string().min(1))
     .transform((d) => d.slice(0, 200)),
 });
 
@@ -85,7 +85,9 @@ export async function POST(request: NextRequest) {
     }
     return Response.json({ inserted: toInsert.length, skipped, invalid }, { status: toInsert.length > 0 ? 201 : 200 });
   } catch (err) {
-    console.error('Bulk insert error:', err);
+    // Only the database error code: the error message carries every row's values
+    const code = (err as { cause?: { code?: string } })?.cause?.code ?? 'unknown';
+    console.error(`Bulk insert failed: ${rows.length} rows, Postgres error ${code}`);
     return Response.json({ error: 'Failed to insert transactions' }, { status: 500 });
   }
 }
