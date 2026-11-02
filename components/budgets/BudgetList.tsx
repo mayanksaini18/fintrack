@@ -41,28 +41,32 @@ export default function BudgetList() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
-  const fetchBudgets = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/budgets');
-      const data: Budget[] = await res.json();
-      setBudgets(data);
-      setLoadError(false);
-      const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
-      if (overBudget.length > 0) {
-        toast.error(
-          overBudget.length === 1
-            ? `${overBudget[0].category} budget exceeded this month`
-            : `${overBudget.length} budgets exceeded this month`,
-          { id: 'budget-overspend' }
-        );
-      }
-    } catch (err) {
-      setLoadError(true);
-      toast.error(err instanceof Error ? err.message : "Couldn't load your budgets");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // A promise chain, not async/await, so the react-hooks lint can see that state is only set once
+  // the reply is in: it counts a setState anywhere in an async function as synchronous
+  const fetchBudgets = useCallback(
+    () =>
+      apiFetch('/api/budgets')
+        .then((res) => res.json())
+        .then((data: Budget[]) => {
+          setBudgets(data);
+          setLoadError(false);
+          const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
+          if (overBudget.length > 0) {
+            toast.error(
+              overBudget.length === 1
+                ? `${overBudget[0].category} budget exceeded this month`
+                : `${overBudget.length} budgets exceeded this month`,
+              { id: 'budget-overspend' }
+            );
+          }
+        })
+        .catch((err) => {
+          setLoadError(true);
+          toast.error(err instanceof Error ? err.message : "Couldn't load your budgets");
+        })
+        .finally(() => setLoading(false)),
+    []
+  );
 
   useEffect(() => { fetchBudgets(); }, [fetchBudgets]);
 

@@ -22,9 +22,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
+      - run: npm run lint
       - run: npm test
       - run: npm run build
-      # Not blocking yet: three react-hooks/set-state-in-effect errors predate CI
-      - name: Lint
-        run: npm run lint
-        continue-on-error: true
