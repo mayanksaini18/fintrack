@@ -2,14 +2,14 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, asc, ilike, eq, and, SQL } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
-import { mockTransactions } from '@/lib/mock-data';
+import { getDemoTransactions } from '@/lib/mock-data';
 import { transactionSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    return Response.json(mockTransactions);
+    return Response.json(getDemoTransactions());
   }
 
   const url = request.nextUrl;

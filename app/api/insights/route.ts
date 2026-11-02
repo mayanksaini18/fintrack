@@ -2,14 +2,14 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
-import { mockTransactions } from '@/lib/mock-data';
+import { getDemoTransactions } from '@/lib/mock-data';
 
 export async function GET() {
   const { userId } = await auth();
 
   let allTx;
   if (!userId) {
-    allTx = mockTransactions.map((t) => ({
+    allTx = getDemoTransactions().map((t) => ({
       ...t,
       date: new Date(t.date),
     }));
