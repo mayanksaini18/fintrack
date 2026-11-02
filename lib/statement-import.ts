@@ -235,6 +235,8 @@ export function parsePaytm(csvText: string, today = new Date()): { rows: ParsedR
 }
 
 // ─── Generic CSV parser (fallback for non-Paytm) ──────────────────────────────
+const SHORT_DATE = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/;
+
 export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: string[] } {
   const lines = csvText.trim().split('\n').filter(Boolean);
   if (lines.length < 2) return { rows: [], errors: ['File is empty'] };
@@ -265,16 +267,26 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
   const plain = cells.filter((c) => c.mark === null && !c.negative).length;
   const minusMeansSpending = negatives >= plain;
 
+  // 05/10/2026 is read day first, as Indian banks write dates, unless a date like 10/31/2026
+  // shows that the file puts the month first (and no date shows the opposite)
+  const shortDates = lines
+    .slice(1)
+    .map((l) => (parseCSVLine(l)[dateIdx] ?? '').trim().match(SHORT_DATE))
+    .filter((d) => d !== null);
+  const monthFirst = shortDates.some((d) => +d[2] > 12) && !shortDates.some((d) => +d[1] > 12);
+
   for (let i = 1; i < lines.length; i++) {
     const cols = parseCSVLine(lines[i]);
     const rawDate = cols[dateIdx]?.trim() ?? '';
     // A leading ' is how the export stops a description running as a spreadsheet formula
     const description = (cols[descIdx]?.trim() ?? `Transaction ${i}`).replace(/^'(?=[=+\-@])/, '');
 
-    // DD-MM-YYYY (Indian banks) or YYYY-MM-DD, with - or /
-    const dmy = rawDate.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+    // DD-MM-YYYY (or MM-DD-YYYY, see above) or YYYY-MM-DD, with - or /
+    const short = rawDate.match(SHORT_DATE);
     const ymd = rawDate.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
-    const isoDate = dmy ? isoDay(+dmy[3], +dmy[2], +dmy[1]) : ymd ? isoDay(+ymd[1], +ymd[2], +ymd[3]) : null;
+    const isoDate = short
+      ? monthFirst ? isoDay(+short[3], +short[1], +short[2]) : isoDay(+short[3], +short[2], +short[1])
+      : ymd ? isoDay(+ymd[1], +ymd[2], +ymd[3]) : null;
     if (!isoDate) { errors.push(`Row ${i + 1}: bad date "${rawDate}" — skipped`); continue; }
 
     let amount = 0;
