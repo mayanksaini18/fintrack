@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fakeAnthropic, type CapturedRequest } from '@/test/anthropic';
+import * as XLSX from 'xlsx';
+import { fakeAnthropic, tinyPdf, type CapturedRequest } from '@/test/anthropic';
 
 const state = vi.hoisted(() => ({ model: null as unknown, userId: 'user_a' as string | null }));
 vi.mock('@clerk/nextjs/server', () => ({ auth: async () => ({ userId: state.userId }) }));
@@ -93,6 +94,27 @@ describe('POST /api/parse-document', () => {
     for (let i = 0; i < 5; i++) expect((await upload('a,b,c')).status).toBe(200);
 
     expect((await upload('a,b,c')).status).toBe(429);
+  });
+
+  it('reads the text of a PDF statement', async () => {
+    const res = await upload(new Uint8Array(tinyPdf('Paid to Swiggy 249.50')), 'statement.pdf');
+
+    expect(res.status).toBe(200);
+    expect(JSON.stringify(requests[0].body)).toContain('Paid to Swiggy 249.50');
+  });
+
+  it('reads every sheet of an Excel statement', async () => {
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([['Date', 'Narration', 'Debit'], ['05/10/2026', 'Swiggy order', 249.5]]), 'October');
+    XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet([['Date', 'Narration', 'Debit'], ['02/11/2026', 'Uber trip', 180]]), 'November');
+    const file = XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+    const res = await upload(new Uint8Array(file), 'statement.xlsx');
+
+    expect(res.status).toBe(200);
+    const sent = JSON.stringify(requests[0].body);
+    expect(sent).toContain('Swiggy order');
+    expect(sent).toContain('Uber trip');
   });
 
   it('requires a signed-in user', async () => {
