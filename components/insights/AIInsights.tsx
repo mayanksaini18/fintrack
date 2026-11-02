@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw } from 'lucide-react';
+import { renderInsightsMarkdown } from '@/lib/markdown';
 
 export default function AIInsights() {
   const [insights, setInsights] = useState<string | null>(null);
@@ -79,19 +80,10 @@ export default function AIInsights() {
 
         {insights && !loading && (
           <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none [&_ul]:space-y-2 [&_li]:text-sm [&_li]:leading-relaxed [&_strong]:text-zinc-900 dark:[&_strong]:text-zinc-100">
-            <div dangerouslySetInnerHTML={{ __html: formatMarkdown(insights) }} />
+            <div dangerouslySetInnerHTML={{ __html: renderInsightsMarkdown(insights) }} />
           </div>
         )}
       </div>
     </div>
   );
-}
-
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.*?)$/gm, '<li>$1</li>')
-    .replace(/^• (.*?)$/gm, '<li>$1</li>')
-    .replace(/(<li>[\s\S]*<\/li>)/, '<ul>$1</ul>')
-    .replace(/\n/g, '<br/>');
 }
