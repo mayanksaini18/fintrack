@@ -7,6 +7,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/api/transactions',
   '/api/insights',
+  // Checks its own auth: CRON_SECRET for the daily cron (GET), the Clerk session for "Process Due" (POST)
+  '/api/recurring/process',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

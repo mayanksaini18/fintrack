@@ -82,15 +82,23 @@ export default function RecurringList() {
 
   async function handleProcess() {
     setProcessing(true);
-    const res = await fetch('/api/recurring/process', { method: 'POST' });
-    const data = await res.json();
-    if (data.created > 0) {
-      toast.success(`Created ${data.created} transaction${data.created > 1 ? 's' : ''} from recurring items`);
+    try {
+      const res = await fetch('/api/recurring/process', { method: 'POST' });
+      if (!res.ok) throw new Error(`Process failed: ${res.status}`);
+      const data: { created: number; skipped: number } = await res.json();
+      if (data.created > 0) {
+        toast.success(`Created ${data.created} transaction${data.created > 1 ? 's' : ''} from recurring items`);
+      } else if (data.skipped > 0) {
+        toast.info(`Skipped ${data.skipped} missed date${data.skipped > 1 ? 's' : ''}. Next dates are updated.`);
+      } else {
+        toast.info('No recurring items are due yet');
+      }
       fetchItems();
-    } else {
-      toast.info('No recurring items are due yet');
+    } catch {
+      toast.error('Could not process recurring items. Please try again.');
+    } finally {
+      setProcessing(false);
     }
-    setProcessing(false);
   }
 
   function formatNextDue(dateStr: string) {

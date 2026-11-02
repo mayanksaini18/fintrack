@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { recurringTransactions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { firstOccurrenceOnOrAfter } from '@/lib/recurring';
 import type { NextRequest } from 'next/server';
 
 export async function PUT(
@@ -22,6 +23,19 @@ export async function PUT(
     if (body.description) updates.description = body.description;
     if (body.frequency) updates.frequency = body.frequency;
     if (body.isActive !== undefined) updates.isActive = body.isActive;
+
+    // Resuming skips the dates that passed while the item was paused.
+    if (body.isActive === true) {
+      const [current] = await db
+        .select()
+        .from(recurringTransactions)
+        .where(and(eq(recurringTransactions.id, id), eq(recurringTransactions.userId, userId)));
+      const startOfToday = new Date();
+      startOfToday.setUTCHours(0, 0, 0, 0);
+      if (current && !current.isActive && current.nextDueDate < startOfToday) {
+        updates.nextDueDate = firstOccurrenceOnOrAfter(current, startOfToday);
+      }
+    }
 
     await db
       .update(recurringTransactions)

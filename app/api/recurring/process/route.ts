@@ -1,60 +1,41 @@
 import { db } from '@/lib/db';
-import { recurringTransactions, transactions } from '@/lib/db/schema';
-import { eq, and, lte } from 'drizzle-orm';
+import { processDueRecurring } from '@/lib/recurring';
+import { auth } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
-
-function getNextDate(current: Date, frequency: string): Date {
-  const next = new Date(current);
-  if (frequency === 'weekly') next.setDate(next.getDate() + 7);
-  else if (frequency === 'monthly') next.setMonth(next.getMonth() + 1);
-  else if (frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
-  return next;
-}
 
 // Called by Vercel Cron daily — secured with CRON_SECRET header
 export async function GET(request: NextRequest) {
-  const secret = request.headers.get('authorization');
-  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error('Recurring cron: CRON_SECRET is not set, refusing to run');
+    return Response.json({ error: 'Cron is not configured' }, { status: 500 });
+  }
+  if (request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const now = new Date();
-
-  const dueItems = await db
-    .select()
-    .from(recurringTransactions)
-    .where(
-      and(
-        eq(recurringTransactions.isActive, true),
-        lte(recurringTransactions.nextDueDate, now)
-      )
+  try {
+    const result = await processDueRecurring(db);
+    console.log(
+      `Recurring cron: processed ${result.processed} items, created ${result.created} transactions, skipped ${result.skipped} missed dates`
     );
-
-  let created = 0;
-
-  for (const item of dueItems) {
-    let dueDate = new Date(item.nextDueDate);
-
-    while (dueDate <= now) {
-      await db.insert(transactions).values({
-        id: crypto.randomUUID(),
-        userId: item.userId,
-        date: dueDate,
-        amount: item.amount,
-        category: item.category,
-        type: item.type,
-        description: item.description,
-      });
-      created++;
-      dueDate = getNextDate(dueDate, item.frequency);
-    }
-
-    await db
-      .update(recurringTransactions)
-      .set({ nextDueDate: dueDate })
-      .where(eq(recurringTransactions.id, item.id));
+    return Response.json(result);
+  } catch (err) {
+    console.error('Recurring cron:', err);
+    return Response.json({ error: 'Failed to process recurring transactions' }, { status: 500 });
   }
+}
 
-  console.log(`Recurring cron: processed ${dueItems.length} items, created ${created} transactions`);
-  return Response.json({ processed: dueItems.length, created });
+// "Process Due" button — only the signed-in user's items
+export async function POST() {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const result = await processDueRecurring(db, { userId });
+    return Response.json(result);
+  } catch (err) {
+    console.error('POST /api/recurring/process:', err);
+    return Response.json({ error: 'Failed to process recurring transactions' }, { status: 500 });
+  }
 }
