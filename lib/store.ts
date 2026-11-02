@@ -1,6 +1,8 @@
 'use client';
 
 import { create } from 'zustand';
+import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api';
 import { Transaction, Role, Filters, Category, TransactionType } from '@/types';
 
 interface FinanceStore {
@@ -54,16 +56,23 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
     get().fetchTransactions();
   },
 
+  // A failed reload keeps the list that's already on screen
   fetchTransactions: async () => {
     set({ loading: true });
     const query = buildQuery(get().filters);
-    const res = await fetch(`/api/transactions?${query}`);
-    const data = await res.json();
-    set({ transactions: Array.isArray(data) ? data : [], loading: false });
+    try {
+      const res = await apiFetch(`/api/transactions?${query}`);
+      const data = await res.json();
+      set({ transactions: Array.isArray(data) ? data : [], loading: false });
+    } catch {
+      set({ loading: false });
+      toast.error("Couldn't load your transactions. Please refresh the page.");
+    }
   },
 
+  // Writes throw if the server rejects them, so callers only report success when it happened
   addTransaction: async (t) => {
-    await fetch('/api/transactions', {
+    await apiFetch('/api/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(t),
@@ -72,7 +81,7 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   },
 
   updateTransaction: async (id, updates) => {
-    await fetch(`/api/transactions/${id}`, {
+    await apiFetch(`/api/transactions/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -81,12 +90,12 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   },
 
   deleteTransaction: async (id) => {
-    await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    await apiFetch(`/api/transactions/${id}`, { method: 'DELETE' });
     await get().fetchTransactions();
   },
 
   bulkDeleteTransactions: async (ids) => {
-    await fetch('/api/transactions/bulk', {
+    await apiFetch('/api/transactions/bulk', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids }),
@@ -95,15 +104,11 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   },
 
   importTransactions: async (txns) => {
-    const res = await fetch('/api/transactions/bulk', {
+    await apiFetch('/api/transactions/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transactions: txns }),
     });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Import failed');
-    }
     await get().fetchTransactions();
   },
 }));

@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, AlertTriangle, FileUp, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
 import AddTransactionDialog from './AddTransactionDialog';
 import ImportCSVDialog from './ImportCSVDialog';
@@ -67,6 +68,20 @@ export default function TransactionTable() {
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Runs one save or delete at a time and reports a failure instead of a fake success
+  async function run(action: () => Promise<void>, failure: string) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await action();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : failure);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(page, totalPages);
@@ -85,19 +100,33 @@ export default function TransactionTable() {
 
   async function saveEdit() {
     if (!editTx) return;
-    await updateTransaction(editTx.id, {
-      ...editForm,
-      date: editForm.date ? new Date(editForm.date).toISOString() : editTx.date,
-    });
-    setEditTx(null);
-    toast.success('Transaction updated');
+    const amount = toWholeRupees(editForm.amount ?? '');
+    if (amount === null) {
+      toast.error('Enter an amount of at least ₹1');
+      return;
+    }
+    await run(async () => {
+      await updateTransaction(editTx.id, {
+        ...editForm,
+        amount,
+        date: editForm.date ? new Date(editForm.date).toISOString() : editTx.date,
+      });
+      setEditTx(null);
+      toast.success(
+        amount === editForm.amount
+          ? 'Transaction updated'
+          : `Transaction updated to ₹${amount.toLocaleString('en-IN')} (Kharcha stores whole rupees)`
+      );
+    }, 'Could not update the transaction');
   }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    await deleteTransaction(deleteTarget.id);
-    toast.success('Transaction deleted');
-    setDeleteTarget(null);
+    await run(async () => {
+      await deleteTransaction(deleteTarget.id);
+      toast.success('Transaction deleted');
+      setDeleteTarget(null);
+    }, 'Could not delete the transaction');
   }
 
   function toggleSelect(id: string) {
@@ -117,10 +146,13 @@ export default function TransactionTable() {
   }
 
   async function confirmBulkDelete() {
-    await bulkDeleteTransactions(Array.from(selected));
-    toast.success(`${selected.size} transaction${selected.size !== 1 ? 's' : ''} deleted`);
-    setSelected(new Set());
-    setBulkDeleteOpen(false);
+    const count = selected.size;
+    await run(async () => {
+      await bulkDeleteTransactions(Array.from(selected));
+      toast.success(`${count} transaction${count !== 1 ? 's' : ''} deleted`);
+      setSelected(new Set());
+      setBulkDeleteOpen(false);
+    }, 'Could not delete the transactions');
   }
 
   function exportCSV() {
@@ -377,8 +409,8 @@ export default function TransactionTable() {
               <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Amount (₹)</label>
               <Input
                 type="number"
-                min={0.01}
-                step={0.01}
+                min={1}
+                step={1}
                 value={editForm.amount ?? ''}
                 onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })}
                 className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
@@ -425,8 +457,8 @@ export default function TransactionTable() {
             <Button variant="outline" size="sm" onClick={() => setEditTx(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-              Save
+            <Button size="sm" onClick={saveEdit} disabled={busy} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+              {busy ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -450,8 +482,8 @@ export default function TransactionTable() {
             <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(false)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={confirmBulkDelete} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
-              Delete {selected.size}
+            <Button size="sm" onClick={confirmBulkDelete} disabled={busy} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
+              {busy ? 'Deleting…' : `Delete ${selected.size}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -484,9 +516,10 @@ export default function TransactionTable() {
             <Button
               size="sm"
               onClick={confirmDelete}
+              disabled={busy}
               className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white"
             >
-              Delete
+              {busy ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -27,6 +27,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
   const [fileName, setFileName] = useState('');
   const [dragging, setDragging] = useState(false);
   const [detectedFormat, setDetectedFormat] = useState('');
+  const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(file: File) {
@@ -45,9 +46,17 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
   }
 
   async function handleImport() {
-    await importTransactions(parsed);
-    toast.success(`Imported ${parsed.length} transactions from ${detectedFormat}`);
-    handleClose();
+    if (importing) return;
+    setImporting(true);
+    try {
+      await importTransactions(parsed);
+      toast.success(`Imported ${parsed.length} transactions from ${detectedFormat}`);
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
+    }
   }
 
   function handleClose() {
@@ -205,10 +214,10 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
             Cancel
           </Button>
           {step === 'preview' && parsed.length > 0 && (
-            <Button size="sm" onClick={handleImport}
+            <Button size="sm" onClick={handleImport} disabled={importing}
               className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Import {parsed.length} transactions
+              {importing ? 'Importing…' : `Import ${parsed.length} transactions`}
             </Button>
           )}
         </DialogFooter>

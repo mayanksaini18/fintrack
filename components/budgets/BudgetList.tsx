@@ -20,6 +20,8 @@ import {
 import { Plus, Trash2, Pencil, Target, AlertTriangle } from 'lucide-react';
 import { Category, Budget } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { apiFetch } from '@/lib/api';
+import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
 
 const CATEGORIES: Category[] = [
@@ -39,43 +41,63 @@ export default function BudgetList() {
   const [showAdd, setShowAdd] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editLimit, setEditLimit] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const fetchBudgets = useCallback(async () => {
-    const res = await fetch('/api/budgets');
-    const data: Budget[] = await res.json();
-    setBudgets(data);
-    setLoading(false);
-    const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
-    if (overBudget.length > 0) {
-      toast.error(
-        overBudget.length === 1
-          ? `${overBudget[0].category} budget exceeded this month`
-          : `${overBudget.length} budgets exceeded this month`,
-        { id: 'budget-overspend' }
-      );
+    try {
+      const res = await apiFetch('/api/budgets');
+      const data: Budget[] = await res.json();
+      setBudgets(data);
+      const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
+      if (overBudget.length > 0) {
+        toast.error(
+          overBudget.length === 1
+            ? `${overBudget[0].category} budget exceeded this month`
+            : `${overBudget.length} budgets exceeded this month`,
+          { id: 'budget-overspend' }
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't load your budgets");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => { fetchBudgets(); }, [fetchBudgets]);
 
   async function handleDelete(id: string) {
-    await fetch(`/api/budgets/${id}`, { method: 'DELETE' });
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
-    toast.success('Budget removed');
+    try {
+      await apiFetch(`/api/budgets/${id}`, { method: 'DELETE' });
+      setBudgets((prev) => prev.filter((b) => b.id !== id));
+      toast.success('Budget removed');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not remove the budget');
+    }
   }
 
   async function handleUpdate(id: string) {
-    if (!editLimit || Number(editLimit) <= 0) return;
-    await fetch(`/api/budgets/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ monthlyLimit: Number(editLimit) }),
-    });
-    setBudgets((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, monthlyLimit: Number(editLimit) } : b))
-    );
-    setEditId(null);
-    toast.success('Budget updated');
+    const monthlyLimit = toWholeRupees(editLimit);
+    if (monthlyLimit === null) {
+      toast.error('Enter a limit of at least ₹1');
+      return;
+    }
+    if (saving) return;
+    setSaving(true);
+    try {
+      await apiFetch(`/api/budgets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthlyLimit }),
+      });
+      setBudgets((prev) => prev.map((b) => (b.id === id ? { ...b, monthlyLimit } : b)));
+      setEditId(null);
+      toast.success('Budget updated');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update the budget');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const totalLimit = budgets.reduce((s, b) => s + b.monthlyLimit, 0);
@@ -226,8 +248,8 @@ export default function BudgetList() {
             <Button variant="outline" size="sm" onClick={() => setEditId(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
               Cancel
             </Button>
-            <Button size="sm" onClick={() => editId && handleUpdate(editId)} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-              Save
+            <Button size="sm" onClick={() => editId && handleUpdate(editId)} disabled={saving} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+              {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -242,24 +264,34 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
   const [category, setCategory] = useState<Category | ''>('');
   const [limit, setLimit] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   const available = CATEGORIES.filter((c) => !existing.includes(c));
 
   async function handleSubmit() {
+    if (saving) return;
+    const monthlyLimit = toWholeRupees(limit);
     const e: Record<string, string> = {};
     if (!category) e.category = 'Required';
-    if (!limit || Number(limit) <= 0) e.limit = 'Enter a valid amount';
+    if (monthlyLimit === null) e.limit = 'Enter an amount of at least ₹1';
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
-    await fetch('/api/budgets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ category, monthlyLimit: Number(limit) }),
-    });
-    toast.success('Budget set');
-    onAdded();
-    handleClose();
+    setSaving(true);
+    try {
+      await apiFetch('/api/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, monthlyLimit }),
+      });
+      toast.success('Budget set');
+      onAdded();
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not set the budget');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleClose() {
@@ -313,8 +345,8 @@ function AddBudgetDialog({ open, onClose, onAdded, existing }: { open: boolean; 
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-            Set Budget
+          <Button size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+            {saving ? 'Saving…' : 'Set Budget'}
           </Button>
         </DialogFooter>
       </DialogContent>

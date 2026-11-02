@@ -21,6 +21,8 @@ import {
 import { Plus, Trash2, Pause, Play, RefreshCw, CalendarClock } from 'lucide-react';
 import { Category, TransactionType, Frequency, RecurringTransaction } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { apiFetch } from '@/lib/api';
+import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
 
 const CATEGORIES: Category[] = [
@@ -54,37 +56,47 @@ export default function RecurringList() {
   const [processing, setProcessing] = useState(false);
 
   const fetchItems = useCallback(async () => {
-    const res = await fetch('/api/recurring');
-    const data = await res.json();
-    setItems(data);
-    setLoading(false);
+    try {
+      const res = await apiFetch('/api/recurring');
+      setItems(await res.json());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't load your recurring items");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   async function handleDelete(id: string) {
-    await fetch(`/api/recurring/${id}`, { method: 'DELETE' });
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success('Recurring item deleted');
+    try {
+      await apiFetch(`/api/recurring/${id}`, { method: 'DELETE' });
+      setItems((prev) => prev.filter((i) => i.id !== id));
+      toast.success('Recurring item deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not delete the recurring item');
+    }
   }
 
   async function handleToggle(id: string, isActive: boolean) {
-    await fetch(`/api/recurring/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, isActive: !isActive } : i))
-    );
-    toast.success(isActive ? 'Paused' : 'Resumed');
+    try {
+      await apiFetch(`/api/recurring/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+      toast.success(isActive ? 'Paused' : 'Resumed');
+      // Resuming can move the next date past the paused period, so reload instead of patching locally
+      fetchItems();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update the recurring item');
+    }
   }
 
   async function handleProcess() {
     setProcessing(true);
     try {
-      const res = await fetch('/api/recurring/process', { method: 'POST' });
-      if (!res.ok) throw new Error(`Process failed: ${res.status}`);
+      const res = await apiFetch('/api/recurring/process', { method: 'POST' });
       const data: { created: number; skipped: number } = await res.json();
       if (data.created > 0) {
         toast.success(`Created ${data.created} transaction${data.created > 1 ? 's' : ''} from recurring items`);
@@ -94,8 +106,8 @@ export default function RecurringList() {
         toast.info('No recurring items are due yet');
       }
       fetchItems();
-    } catch {
-      toast.error('Could not process recurring items. Please try again.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not process recurring items. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -255,11 +267,12 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
     startDate: new Date().toISOString().split('T')[0],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   function validate() {
     const e: Record<string, string> = {};
     if (!form.description.trim()) e.description = 'Required';
-    if (!form.amount || Number(form.amount) <= 0) e.amount = 'Enter a valid amount';
+    if (toWholeRupees(form.amount) === null) e.amount = 'Enter an amount of at least ₹1';
     if (!form.category) e.category = 'Required';
     if (!form.type) e.type = 'Required';
     if (!form.frequency) e.frequency = 'Required';
@@ -269,22 +282,29 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
   }
 
   async function handleSubmit() {
-    if (!validate()) return;
-    await fetch('/api/recurring', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        description: form.description.trim(),
-        amount: Number(form.amount),
-        category: form.category,
-        type: form.type,
-        frequency: form.frequency,
-        startDate: new Date(form.startDate).toISOString(),
-      }),
-    });
-    toast.success('Recurring transaction added');
-    onAdded();
-    handleClose();
+    if (saving || !validate()) return;
+    setSaving(true);
+    try {
+      await apiFetch('/api/recurring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: form.description.trim(),
+          amount: toWholeRupees(form.amount),
+          category: form.category,
+          type: form.type,
+          frequency: form.frequency,
+          startDate: new Date(form.startDate).toISOString(),
+        }),
+      });
+      toast.success('Recurring transaction added');
+      onAdded();
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not add the recurring transaction');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleClose() {
@@ -389,8 +409,8 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-            Add
+          <Button size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+            {saving ? 'Adding…' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>
