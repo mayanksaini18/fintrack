@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { recurringTransactions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
-import { recurringSchema } from '@/lib/validation';
+import { isoOrNull, recurringSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 export async function GET() {
@@ -22,8 +22,9 @@ export async function GET() {
     type: r.type,
     description: r.description,
     frequency: r.frequency,
-    startDate: r.startDate.toISOString(),
-    nextDueDate: r.nextDueDate.toISOString(),
+    // null when a stored date can't be read, so the list still loads and the item can be deleted
+    startDate: isoOrNull(r.startDate),
+    nextDueDate: isoOrNull(r.nextDueDate),
     isActive: r.isActive,
   }));
 

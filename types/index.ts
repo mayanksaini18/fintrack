@@ -32,8 +32,9 @@ export interface RecurringTransaction {
   type: TransactionType;
   description: string;
   frequency: Frequency;
-  startDate: string;
-  nextDueDate: string;
+  // null when the stored date can't be read
+  startDate: string | null;
+  nextDueDate: string | null;
   isActive: boolean;
 }
 

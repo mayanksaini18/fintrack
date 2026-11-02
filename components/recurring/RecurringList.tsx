@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2, Pause, Play, RefreshCw, CalendarClock } from 'lucide-react';
 import { Category, TransactionType, Frequency, RecurringTransaction } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { dateInputValue, formatCurrency } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
 import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
@@ -83,7 +83,8 @@ export default function RecurringList() {
       await apiFetch(`/api/recurring/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
+        // today: so resuming skips the paused dates by the user's calendar, not UTC's
+        body: JSON.stringify({ isActive: !isActive, today: dateInputValue() }),
       });
       toast.success(isActive ? 'Paused' : 'Resumed');
       // Resuming can move the next date past the paused period, so reload instead of patching locally
@@ -113,7 +114,8 @@ export default function RecurringList() {
     }
   }
 
-  function formatNextDue(dateStr: string) {
+  function formatNextDue(dateStr: string | null) {
+    if (!dateStr) return { text: "Date can't be read: delete and add again", overdue: true };
     const date = new Date(dateStr);
     const now = new Date();
     const diff = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -264,7 +266,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
     category: '' as Category | '',
     type: '' as TransactionType | '',
     frequency: '' as Frequency | '',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: dateInputValue(),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -308,7 +310,7 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
   }
 
   function handleClose() {
-    setForm({ description: '', amount: '', category: '', type: '', frequency: '', startDate: new Date().toISOString().split('T')[0] });
+    setForm({ description: '', amount: '', category: '', type: '', frequency: '', startDate: dateInputValue() });
     setErrors({});
     onClose();
   }

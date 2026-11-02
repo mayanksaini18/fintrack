@@ -21,6 +21,8 @@ async function addRecurring(values: Partial<typeof recurringTransactions.$inferI
     description: 'Flat rent',
     frequency: 'monthly',
     startDate: values.nextDueDate,
+    // Created on its start date, so dates after that which weren't processed are missed runs
+    createdAt: values.startDate ?? values.nextDueDate,
     ...values,
   });
 }
@@ -95,6 +97,39 @@ describe('processDueRecurring', () => {
     const rows = await db.select().from(transactions);
     expect(rows.map((r) => r.userId)).toEqual(['user_a']);
     expect(await nextDueOf('theirs')).toBe('2026-11-01T00:00:00.000Z');
+  });
+
+  it('keeps going for everyone else when one item has a date the database returns as invalid', async () => {
+    // A year-0026 typo is stored fine, but reads back as an Invalid Date
+    await addRecurring({ id: 'typo', userId: 'user_b', nextDueDate: new Date('0026-11-02T00:00:00.000Z') });
+    await addRecurring({ id: 'rent', nextDueDate: new Date('2026-11-01T00:00:00.000Z') });
+
+    const result = await processDueRecurring(db, { now });
+
+    expect(result).toMatchObject({ processed: 1, created: 1 });
+    expect((await db.select().from(transactions)).map((r) => r.userId)).toEqual(['user_a']);
+  });
+
+  it('moves nothing when saving the entries fails, because the claim and the insert are one statement', async () => {
+    await db.$client.exec('ALTER TABLE transactions ADD CONSTRAINT amount_not_13 CHECK (amount <> 13)');
+    await addRecurring({ id: 'unlucky', amount: 13, nextDueDate: new Date('2026-11-01T00:00:00.000Z') });
+
+    const result = await processDueRecurring(db, { now });
+
+    expect(result.processed).toBe(0);
+    expect(await db.select().from(transactions)).toHaveLength(0);
+    expect(await nextDueOf('unlucky')).toBe('2026-11-01T00:00:00.000Z');
+  });
+
+  it('can process a single item', async () => {
+    await addRecurring({ id: 'rent', nextDueDate: new Date('2026-11-01T00:00:00.000Z') });
+    await addRecurring({ id: 'gym', amount: 500, nextDueDate: new Date('2026-11-01T00:00:00.000Z') });
+
+    const result = await processDueRecurring(db, { now, userId: 'user_a', id: 'gym' });
+
+    expect(result.processed).toBe(1);
+    expect((await db.select().from(transactions)).map((r) => r.amount)).toEqual([500]);
+    expect(await nextDueOf('rent')).toBe('2026-11-01T00:00:00.000Z');
   });
 
   it('leaves paused items alone', async () => {

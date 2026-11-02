@@ -52,25 +52,43 @@ function nextOnSchedule(schedule: Schedule, from: Date, inclusive: boolean): Dat
   return date;
 }
 
+/**
+ * The start of the user's current day in the app's UTC-midnight date convention. Uses the
+ * browser's calendar date (YYYY-MM-DD) when it is within a day of the server's, so a user in
+ * India just after midnight gets their own today rather than UTC's yesterday.
+ */
+export function startOfUserDay(today: string | undefined, now = new Date()): Date {
+  const utcDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const match = today?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const userDay = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    if (Math.abs(userDay - utcDay) <= DAY_MS) return new Date(userDay);
+  }
+  return new Date(utcDay);
+}
+
 /** The first date on the schedule that is on or after `from`. */
 export function firstOccurrenceOnOrAfter(schedule: Schedule, from: Date): Date {
   return nextOnSchedule(schedule, from, true);
 }
 
 /**
- * Works out which due dates to turn into transactions. Dates on or before `now` are
- * created if they fall inside the catch-up window and skipped otherwise. `nextDueDate`
- * is the first date after `now`.
+ * Works out which due dates to turn into transactions. A date on or before `now` is created
+ * if it falls inside the catch-up window, or comes before the item was created (the user
+ * picked a past start date, so asked for it); otherwise it is skipped. Nothing before
+ * SKIP_BEFORE is ever created. `nextDueDate` is the first date after `now`.
  */
-export function planOccurrences(schedule: Schedule & { nextDueDate: Date }, now: Date) {
+export function planOccurrences(schedule: Schedule & { nextDueDate: Date; createdAt?: Date }, now: Date) {
   const startOfToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const earliest = Math.max(startOfToday - CATCH_UP_DAYS * DAY_MS, SKIP_BEFORE.getTime());
+  const catchUpFrom = startOfToday - CATCH_UP_DAYS * DAY_MS;
+  const requestedBefore = schedule.createdAt?.getTime() ?? -Infinity;
 
   const create: Date[] = [];
   let skipped = 0;
   let due = schedule.nextDueDate;
   while (due <= now) {
-    if (due.getTime() >= earliest) create.push(due);
+    const time = due.getTime();
+    if (time >= SKIP_BEFORE.getTime() && (time >= catchUpFrom || time < requestedBefore)) create.push(due);
     else skipped++;
     due = nextOnSchedule(schedule, due, false);
   }
@@ -80,11 +98,12 @@ export function planOccurrences(schedule: Schedule & { nextDueDate: Date }, now:
 
 /**
  * Turns due recurring items into transactions. With `userId` only that user's items
- * are processed (the "Process Due" button); without it, everyone's (the daily cron).
+ * are processed (the "Process Due" button), and with `id` only that item (before it is
+ * paused); without either, everyone's (the daily cron).
  */
 export async function processDueRecurring(
   database: Database,
-  { now = new Date(), userId }: { now?: Date; userId?: string } = {},
+  { now = new Date(), userId, id }: { now?: Date; userId?: string; id?: string } = {},
 ) {
   const dueItems = await database
     .select()
@@ -94,6 +113,7 @@ export async function processDueRecurring(
         eq(recurringTransactions.isActive, true),
         lte(recurringTransactions.nextDueDate, now),
         userId ? eq(recurringTransactions.userId, userId) : undefined,
+        id ? eq(recurringTransactions.id, id) : undefined,
       ),
     );
 
@@ -102,44 +122,61 @@ export async function processDueRecurring(
   let skipped = 0;
 
   for (const item of dueItems) {
-    const plan = planOccurrences(item, now);
-    const occurrences =
-      plan.create.length > 0
-        ? sql`VALUES ${sql.join(
-            plan.create.map((date) => sql`(${crypto.randomUUID()}::text, ${date.toISOString()}::timestamptz)`),
-            sql`, `,
-          )}`
-        : sql`SELECT NULL::text, NULL::timestamptz WHERE false`;
-
-    // One statement, so it is all or nothing. The next due date only moves if it still
-    // holds the value read above, and rows are inserted only when it moved, so a
-    // repeated or overlapping run finds nothing left to claim.
-    const result = await database.execute(sql`
-      WITH claimed AS (
-        UPDATE recurring_transactions
-        SET next_due_date = ${plan.nextDueDate.toISOString()}::timestamptz
-        WHERE id = ${item.id}
-          AND date_trunc('milliseconds', next_due_date) = ${item.nextDueDate.toISOString()}::timestamptz
-          AND is_active
-        RETURNING user_id, amount, category, type, description
-      ),
-      occurrences (id, date) AS (${occurrences}),
-      inserted AS (
-        INSERT INTO transactions (id, user_id, date, amount, category, type, description)
-        SELECT occurrences.id, claimed.user_id, occurrences.date, claimed.amount, claimed.category, claimed.type, claimed.description
-        FROM claimed CROSS JOIN occurrences
-        RETURNING 1
-      )
-      SELECT (SELECT count(*) FROM claimed)::int AS claimed, (SELECT count(*) FROM inserted)::int AS inserted
-    `);
-    // neon-http and PGlite both return { rows }.
-    const [row] = (result as unknown as { rows: { claimed: number; inserted: number }[] }).rows;
-    if (row.claimed === 0) continue;
-
-    processed++;
-    created += row.inserted;
-    skipped += plan.skipped;
+    // A row whose dates can't be read (such as a year typo) is left alone, so it can't stop the run for everyone else
+    if (Number.isNaN(item.startDate.getTime()) || Number.isNaN(item.nextDueDate.getTime())) {
+      console.error(`Recurring: skipping ${item.id}, its dates can't be read`);
+      continue;
+    }
+    try {
+      const result = await claimAndInsert(database, item, planOccurrences(item, now));
+      if (result.claimed === 0) continue;
+      processed++;
+      created += result.inserted;
+      skipped += result.skipped;
+    } catch (err) {
+      // The statement failed as a whole, so nothing moved for this item and the next run tries again
+      console.error(`Recurring: could not process ${item.id}:`, err);
+    }
   }
 
   return { processed, created, skipped };
+}
+
+async function claimAndInsert(
+  database: Database,
+  item: typeof recurringTransactions.$inferSelect,
+  plan: ReturnType<typeof planOccurrences>,
+) {
+  const occurrences =
+    plan.create.length > 0
+      ? sql`VALUES ${sql.join(
+          plan.create.map((date) => sql`(${crypto.randomUUID()}::text, ${date.toISOString()}::timestamptz)`),
+          sql`, `,
+        )}`
+      : sql`SELECT NULL::text, NULL::timestamptz WHERE false`;
+
+  // One statement, so it is all or nothing. The next due date only moves if it still
+  // holds the value read above, and rows are inserted only when it moved, so a
+  // repeated or overlapping run finds nothing left to claim.
+  const result = await database.execute(sql`
+    WITH claimed AS (
+      UPDATE recurring_transactions
+      SET next_due_date = ${plan.nextDueDate.toISOString()}::timestamptz
+      WHERE id = ${item.id}
+        AND date_trunc('milliseconds', next_due_date) = ${item.nextDueDate.toISOString()}::timestamptz
+        AND is_active
+      RETURNING user_id, amount, category, type, description
+    ),
+    occurrences (id, date) AS (${occurrences}),
+    inserted AS (
+      INSERT INTO transactions (id, user_id, date, amount, category, type, description)
+      SELECT occurrences.id, claimed.user_id, occurrences.date, claimed.amount, claimed.category, claimed.type, claimed.description
+      FROM claimed CROSS JOIN occurrences
+      RETURNING 1
+    )
+    SELECT (SELECT count(*) FROM claimed)::int AS claimed, (SELECT count(*) FROM inserted)::int AS inserted
+  `);
+  // neon-http and PGlite both return { rows }.
+  const [row] = (result as unknown as { rows: { claimed: number; inserted: number }[] }).rows;
+  return { ...row, skipped: plan.skipped };
 }

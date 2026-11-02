@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Category, TransactionType } from '@/types';
 import { toWholeRupees } from '@/lib/money';
+import { dateInputValue } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const CATEGORIES: Category[] = [
@@ -55,7 +56,7 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
     amount: '',
     category: '',
     type: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dateInputValue(),
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [saving, setSaving] = useState(false);
@@ -97,7 +98,7 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
   }
 
   function handleClose() {
-    setForm({ description: '', amount: '', category: '', type: '', date: new Date().toISOString().split('T')[0] });
+    setForm({ description: '', amount: '', category: '', type: '', date: dateInputValue() });
     setErrors({});
     onClose();
   }

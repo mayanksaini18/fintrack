@@ -101,3 +101,11 @@ describe('POST /api/transactions/bulk', () => {
     expect((await importRows([row()])).status).toBe(401);
   });
 });
+
+describe('POST /api/transactions/bulk dates', () => {
+  it('skips rows with a year typo instead of saving a date that cannot be read back', async () => {
+    const { body } = await importRows([row(), row({ date: '0026-10-05T00:00:00.000Z' })]);
+
+    expect(body).toMatchObject({ inserted: 1, invalid: 1 });
+  });
+});

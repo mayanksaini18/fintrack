@@ -40,7 +40,13 @@ export async function GET(request: NextRequest) {
     .where(and(...conditions))
     .orderBy(orderFn(orderCol));
 
-  const mapped = results.map((r) => ({
+  // A stored date that can't be read back would otherwise break the whole list
+  const readable = results.filter((r) => !Number.isNaN(r.date.getTime()));
+  if (readable.length < results.length) {
+    console.error(`GET /api/transactions: skipped ${results.length - readable.length} rows with unreadable dates`);
+  }
+
+  const mapped = readable.map((r) => ({
     id: r.id,
     date: r.date.toISOString(),
     amount: r.amount,

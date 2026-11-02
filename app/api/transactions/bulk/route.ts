@@ -3,6 +3,7 @@ import { transactions } from '@/lib/db/schema';
 import { auth } from '@clerk/nextjs/server';
 import { inArray, eq, and, gte, lt } from 'drizzle-orm';
 import { z } from 'zod';
+import { isUsableDate } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
 const MAX_ROWS = 2000;
@@ -16,7 +17,7 @@ const rowSchema = z.object({
   date: z
     .string()
     .transform((s) => new Date(s))
-    .refine((d) => !Number.isNaN(d.getTime())),
+    .refine(isUsableDate),
   amount: z.coerce
     .number()
     .transform(Math.round)

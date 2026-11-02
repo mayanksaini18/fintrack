@@ -16,6 +16,11 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+/** The user's own calendar date as YYYY-MM-DD, for date inputs (toISOString would give UTC's) */
+export function dateInputValue(date = new Date()): string {
+  return format(date, 'yyyy-MM-dd');
+}
+
 export function formatDate(date: string): string {
   return format(new Date(date), 'MMM d, yyyy');
 }

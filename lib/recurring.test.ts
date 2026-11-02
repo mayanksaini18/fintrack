@@ -41,7 +41,7 @@ describe('planOccurrences', () => {
 
   it('skips the April–October backlog and moves to the next future date', () => {
     const plan = planOccurrences(
-      { frequency: 'monthly', startDate: d('2026-04-25T00:00:00.000Z'), nextDueDate: d('2026-04-25T00:00:00.000Z') },
+      { frequency: 'monthly', startDate: d('2026-04-25T00:00:00.000Z'), nextDueDate: d('2026-04-25T00:00:00.000Z'), createdAt: d('2026-04-25T00:00:00.000Z') },
       now,
     );
     expect(plan.create).toEqual([]);
@@ -51,7 +51,7 @@ describe('planOccurrences', () => {
 
   it('skips late-October dates even though they are inside the 7-day window', () => {
     const plan = planOccurrences(
-      { frequency: 'monthly', startDate: d('2026-10-28T00:00:00.000Z'), nextDueDate: d('2026-10-28T00:00:00.000Z') },
+      { frequency: 'monthly', startDate: d('2026-10-28T00:00:00.000Z'), nextDueDate: d('2026-10-28T00:00:00.000Z'), createdAt: d('2026-10-28T00:00:00.000Z') },
       now,
     );
     expect(plan.create).toEqual([]);
@@ -61,7 +61,7 @@ describe('planOccurrences', () => {
 
   it('creates a date that is due now', () => {
     const plan = planOccurrences(
-      { frequency: 'monthly', startDate: d('2026-11-01T00:00:00.000Z'), nextDueDate: d('2026-11-01T00:00:00.000Z') },
+      { frequency: 'monthly', startDate: d('2026-11-01T00:00:00.000Z'), nextDueDate: d('2026-11-01T00:00:00.000Z'), createdAt: d('2026-11-01T00:00:00.000Z') },
       now,
     );
     expect(isoList(plan.create)).toEqual(['2026-11-01']);
@@ -71,7 +71,7 @@ describe('planOccurrences', () => {
 
   it('fills in today and the 7 days before it after a missed run', () => {
     const plan = planOccurrences(
-      { frequency: 'weekly', startDate: d('2026-12-13T00:00:00.000Z'), nextDueDate: d('2026-12-13T00:00:00.000Z') },
+      { frequency: 'weekly', startDate: d('2026-12-13T00:00:00.000Z'), nextDueDate: d('2026-12-13T00:00:00.000Z'), createdAt: d('2026-12-13T00:00:00.000Z') },
       d('2026-12-20T04:00:00.000Z'),
     );
     expect(isoList(plan.create)).toEqual(['2026-12-13', '2026-12-20']);
@@ -80,7 +80,7 @@ describe('planOccurrences', () => {
 
   it('skips dates older than the 7-day window', () => {
     const plan = planOccurrences(
-      { frequency: 'monthly', startDate: d('2026-12-05T00:00:00.000Z'), nextDueDate: d('2026-12-05T00:00:00.000Z') },
+      { frequency: 'monthly', startDate: d('2026-12-05T00:00:00.000Z'), nextDueDate: d('2026-12-05T00:00:00.000Z'), createdAt: d('2026-12-05T00:00:00.000Z') },
       d('2026-12-20T04:00:00.000Z'),
     );
     expect(plan.create).toEqual([]);
@@ -88,9 +88,35 @@ describe('planOccurrences', () => {
     expect(plan.nextDueDate.toISOString()).toBe('2027-01-05T00:00:00.000Z');
   });
 
+  it('creates a date exactly 7 days back and skips one 8 days back', () => {
+    const cron = d('2026-12-20T01:00:00.000Z');
+    const sevenBack = d('2026-12-13T00:00:00.000Z');
+    const eightBack = d('2026-12-12T00:00:00.000Z');
+    expect(isoList(planOccurrences({ frequency: 'monthly', startDate: sevenBack, nextDueDate: sevenBack, createdAt: sevenBack }, cron).create)).toEqual(['2026-12-13']);
+    expect(planOccurrences({ frequency: 'monthly', startDate: eightBack, nextDueDate: eightBack, createdAt: eightBack }, cron).skipped).toBe(1);
+  });
+
+  it('fills in the past dates a new item asks for with its start date', () => {
+    const plan = planOccurrences(
+      { frequency: 'monthly', startDate: d('2026-11-15T00:00:00.000Z'), nextDueDate: d('2026-11-15T00:00:00.000Z'), createdAt: d('2026-12-12T10:00:00.000Z') },
+      d('2026-12-13T01:00:00.000Z'),
+    );
+    expect(isoList(plan.create)).toEqual(['2026-11-15']);
+    expect(plan.nextDueDate.toISOString()).toBe('2026-12-15T00:00:00.000Z');
+  });
+
+  it('still skips dates before 1 Nov 2026 for a new item', () => {
+    const plan = planOccurrences(
+      { frequency: 'monthly', startDate: d('2026-09-15T00:00:00.000Z'), nextDueDate: d('2026-09-15T00:00:00.000Z'), createdAt: d('2026-12-12T10:00:00.000Z') },
+      d('2026-12-13T01:00:00.000Z'),
+    );
+    expect(isoList(plan.create)).toEqual(['2026-11-15']);
+    expect(plan.skipped).toBe(2);
+  });
+
   it('does nothing when the next date is still in the future', () => {
     const next = d('2026-11-20T00:00:00.000Z');
-    const plan = planOccurrences({ frequency: 'monthly', startDate: next, nextDueDate: next }, now);
+    const plan = planOccurrences({ frequency: 'monthly', startDate: next, nextDueDate: next, createdAt: next }, now);
     expect(plan.create).toEqual([]);
     expect(plan.skipped).toBe(0);
     expect(plan.nextDueDate.toISOString()).toBe(next.toISOString());
@@ -99,7 +125,7 @@ describe('planOccurrences', () => {
   it('gets back onto the start-date schedule when the stored date drifted', () => {
     // The old setMonth() maths turned Jan 31 + 1 month into Mar 3.
     const plan = planOccurrences(
-      { frequency: 'monthly', startDate: d('2026-01-31T00:00:00.000Z'), nextDueDate: d('2026-03-03T00:00:00.000Z') },
+      { frequency: 'monthly', startDate: d('2026-01-31T00:00:00.000Z'), nextDueDate: d('2026-03-03T00:00:00.000Z'), createdAt: d('2026-01-31T00:00:00.000Z') },
       now,
     );
     expect(plan.create).toEqual([]);
