@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { CATEGORIES } from '@/lib/categories';
 
-const CATEGORIES = ['Salary','Freelance','Food','Transport','Entertainment','Shopping','Healthcare','Utilities','Rent','Other'] as const;
 const TYPES = ['income','expense'] as const;
 const FREQUENCIES = ['weekly','monthly','yearly'] as const;
 

@@ -1,4 +1,5 @@
-import { Category, TransactionType } from '@/types';
+import { Category, Transaction, TransactionType } from '@/types';
+import { CATEGORIES } from '@/lib/categories';
 
 // ─── CSV line parser ──────────────────────────────────────────────────────────
 export function parseCSVLine(line: string): string[] {
@@ -6,7 +7,12 @@ export function parseCSVLine(line: string): string[] {
   let current = '';
   let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
-    if (line[i] === '"') { inQuotes = !inQuotes; continue; }
+    if (line[i] === '"') {
+      // "" inside a quoted field is a literal quote
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; continue; }
+      inQuotes = !inQuotes;
+      continue;
+    }
     if (line[i] === ',' && !inQuotes) { result.push(current.trim()); current = ''; continue; }
     current += line[i];
   }
@@ -234,6 +240,9 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
   const debitIdx = headers.findIndex((h) => h.includes('debit') || h.includes('withdrawal'));
   const creditIdx = headers.findIndex((h) => h.includes('credit') || h.includes('deposit'));
   const amountIdx = headers.findIndex((h) => h === 'amount' || h === 'amt');
+  // Kharcha's own export (and some banks) also say which way money went, and the category
+  const typeIdx = headers.findIndex((h) => h === 'type' || h === 'transactiontype' || h === 'drcr' || h === 'crdr');
+  const categoryIdx = headers.findIndex((h) => h === 'category');
 
   if (dateIdx === -1 || descIdx === -1 || (debitIdx === -1 && creditIdx === -1 && amountIdx === -1)) {
     return { rows: [], errors: ['Could not detect columns. Expected Date, Description, and Debit/Credit or Amount columns.'] };
@@ -246,7 +255,8 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
   for (let i = 1; i < lines.length; i++) {
     const cols = parseCSVLine(lines[i]);
     const rawDate = cols[dateIdx]?.trim() ?? '';
-    const description = cols[descIdx]?.trim() ?? `Transaction ${i}`;
+    // A leading ' is how the export stops a description running as a spreadsheet formula
+    const description = (cols[descIdx]?.trim() ?? `Transaction ${i}`).replace(/^'(?=[=+\-@])/, '');
 
     // DD-MM-YYYY (Indian banks) or YYYY-MM-DD, with - or /
     const dmy = rawDate.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
@@ -260,7 +270,10 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
       const cell = readAmountCell(cols[amountIdx] ?? '');
       const category = mapCategory('', description);
       amount = cell.amount;
-      type = cell.type ?? (marksMoneyOut || category === 'Salary' || category === 'Freelance' ? 'income' : 'expense');
+      type =
+        cell.type ??
+        readTypeCell(cols[typeIdx]) ??
+        (marksMoneyOut || category === 'Salary' || category === 'Freelance' ? 'income' : 'expense');
     } else {
       const debit = parseFloat((cols[debitIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
       const credit = parseFloat((cols[creditIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
@@ -270,9 +283,22 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
     }
     if (!(amount > 0)) { errors.push(`Row ${i + 1}: bad amount — skipped`); continue; }
 
-    rows.push({ date: isoDate, description, amount, type, category: mapCategory('', description) });
+    rows.push({ date: isoDate, description, amount, type, category: readCategoryCell(cols[categoryIdx]) ?? mapCategory('', description) });
   }
   return { rows, errors };
+}
+
+function readCategoryCell(raw: string | undefined): Category | null {
+  const value = raw?.trim().toLowerCase();
+  return CATEGORIES.find((c) => c.toLowerCase() === value) ?? null;
+}
+
+// "income"/"credit"/"Cr" or "expense"/"debit"/"Dr"; anything else (e.g. "UPI") says nothing
+function readTypeCell(raw: string | undefined): TransactionType | null {
+  const value = raw?.trim().toLowerCase().replace(/\.$/, '');
+  if (value === 'income' || value === 'credit' || value === 'cr') return 'income';
+  if (value === 'expense' || value === 'debit' || value === 'dr') return 'expense';
+  return null;
 }
 
 // "-450.50", "(450.50)" and "450.50 Dr" are money out; "+450.50" and "450.50 Cr" are money in.
@@ -304,4 +330,25 @@ export function describeImport({ inserted, skipped, invalid }: ImportResult): st
   if (skipped > 0) parts.push(`${skipped} ${skipped === 1 ? 'was' : 'were'} already in Kharcha.`);
   if (invalid > 0) parts.push(`${invalid} couldn't be read and ${invalid === 1 ? 'was' : 'were'} skipped.`);
   return parts.join(' ');
+}
+
+// A leading = + - @ (or tab/CR) makes a spreadsheet run the cell as a formula
+const FORMULA_START = /^[=+\-@\t\r]/;
+const quoted = (value: string) => `"${value.replace(/"/g, '""')}"`;
+
+/**
+ * The transactions as CSV that spreadsheets open safely and Kharcha can import again:
+ * calendar dates, quoted descriptions, and a leading ' on anything that would run as a formula.
+ */
+export function transactionsToCSV(transactions: Transaction[]): string {
+  const lines = transactions.map((t) =>
+    [
+      t.date.slice(0, 10),
+      quoted(FORMULA_START.test(t.description) ? `'${t.description}` : t.description),
+      t.category,
+      t.type,
+      String(t.amount),
+    ].join(',')
+  );
+  return ['Date,Description,Category,Type,Amount', ...lines].join('\n');
 }

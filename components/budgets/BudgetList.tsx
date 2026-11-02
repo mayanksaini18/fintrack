@@ -23,11 +23,8 @@ import { formatCurrency } from '@/lib/utils';
 import { apiFetch } from '@/lib/api';
 import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
+import { CATEGORIES } from '@/lib/categories';
 
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
 
 const CATEGORY_ICONS: Record<string, string> = {
   Food: '🍔', Transport: '🚗', Entertainment: '🎬', Shopping: '🛍️',

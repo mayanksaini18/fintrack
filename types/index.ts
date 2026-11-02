@@ -1,16 +1,7 @@
 export type TransactionType = "income" | "expense";
 
-export type Category =
-  | "Salary"
-  | "Freelance"
-  | "Food"
-  | "Transport"
-  | "Entertainment"
-  | "Shopping"
-  | "Healthcare"
-  | "Utilities"
-  | "Rent"
-  | "Other";
+export type { Category } from '@/lib/categories';
+import type { Category } from '@/lib/categories';
 
 export type Role = "admin" | "viewer";
 

@@ -22,11 +22,8 @@ import { Category, TransactionType } from '@/types';
 import { toWholeRupees } from '@/lib/money';
 import { dateInputValue } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CATEGORIES } from '@/lib/categories';
 
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
 
 interface Props {
   open: boolean;

@@ -33,14 +33,13 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, Alert
 import { cn } from '@/lib/utils';
 import { toWholeRupees } from '@/lib/money';
 import { applyFilters } from '@/lib/filters';
+import { transactionsToCSV } from '@/lib/statement-import';
+import { selectedInView, toggleOne, togglePage } from '@/lib/selection';
 import { toast } from 'sonner';
 import AddTransactionDialog from './AddTransactionDialog';
 import ImportCSVDialog from './ImportCSVDialog';
+import { CATEGORIES } from '@/lib/categories';
 
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
 
 const PAGE_SIZE = 10;
 
@@ -132,25 +131,17 @@ export default function TransactionTable() {
   }
 
   function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setSelected((prev) => toggleOne(prev, id));
   }
 
   function toggleSelectAll() {
-    if (selected.size === paged.length && paged.length > 0) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(paged.map((tx) => tx.id)));
-    }
+    setSelected((prev) => togglePage(prev, paged.map((tx) => tx.id)));
   }
 
   async function confirmBulkDelete() {
-    const count = selected.size;
+    const count = selectedIds.length;
     await run(async () => {
-      await bulkDeleteTransactions(Array.from(selected));
+      await bulkDeleteTransactions(selectedIds);
       toast.success(`${count} transaction${count !== 1 ? 's' : ''} deleted`);
       setSelected(new Set());
       setBulkDeleteOpen(false);
@@ -158,16 +149,8 @@ export default function TransactionTable() {
   }
 
   function exportCSV() {
-    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount'];
-    const rows = visible.map((tx) => [
-      formatDate(tx.date),
-      `"${tx.description.replace(/"/g, '""')}"`,
-      tx.category,
-      tx.type,
-      tx.amount.toFixed(2),
-    ]);
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // The byte-order mark makes Excel read the file as UTF-8 (₹, – and other non-ASCII text)
+    const blob = new Blob(['\uFEFF' + transactionsToCSV(visible)], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -177,17 +160,19 @@ export default function TransactionTable() {
     toast.success(`Exported ${visible.length} transaction${visible.length !== 1 ? 's' : ''}`);
   }
 
+  // Rows ticked and then hidden by the search or filters are not counted or deleted
+  const selectedIds = selectedInView(visible, selected);
   const allPageSelected = paged.length > 0 && paged.every((tx) => selected.has(tx.id));
   const somePageSelected = paged.some((tx) => selected.has(tx.id));
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
       {/* Bulk action bar */}
-      {selected.size > 0 && (
+      {selectedIds.length > 0 && (
         <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:glass dark:border-white/[0.12] text-white dark:text-white">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-4 h-4" />
-            <span className="text-sm font-medium">{selected.size} selected</span>
+            <span className="text-sm font-medium">{selectedIds.length} selected</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -204,7 +189,7 @@ export default function TransactionTable() {
               onClick={() => setBulkDeleteOpen(true)}
             >
               <Trash2 className="w-3.5 h-3.5 mr-1" />
-              Delete {selected.size}
+              Delete {selectedIds.length}
             </Button>
           </div>
         </div>
@@ -474,10 +459,10 @@ export default function TransactionTable() {
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-500/10 dark:border dark:border-rose-500/20 shrink-0">
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
               </div>
-              <DialogTitle className="text-sm font-semibold dark:text-white">Delete {selected.size} Transactions</DialogTitle>
+              <DialogTitle className="text-sm font-semibold dark:text-white">Delete {selectedIds.length} Transactions</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pl-12">
-              This will permanently delete {selected.size} transaction{selected.size !== 1 ? 's' : ''}. This cannot be undone.
+              This will permanently delete {selectedIds.length} transaction{selectedIds.length !== 1 ? 's' : ''}. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 mt-2">
@@ -485,7 +470,7 @@ export default function TransactionTable() {
               Cancel
             </Button>
             <Button size="sm" onClick={confirmBulkDelete} disabled={busy} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
-              {busy ? 'Deleting…' : `Delete ${selected.size}`}
+              {busy ? 'Deleting…' : `Delete ${selectedIds.length}`}
             </Button>
           </DialogFooter>
         </DialogContent>

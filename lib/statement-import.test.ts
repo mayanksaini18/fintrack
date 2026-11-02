@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeImport, parseGeneric, parsePaytm } from './statement-import';
+import { describeImport, parseGeneric, parsePaytm, transactionsToCSV } from './statement-import';
 
 const today = new Date('2026-11-02T10:00:00+05:30');
 
@@ -131,5 +131,29 @@ describe('describeImport', () => {
 
   it('mentions rows that could not be read', () => {
     expect(describeImport({ inserted: 1, skipped: 0, invalid: 1 })).toBe("Imported 1 transaction. 1 couldn't be read and was skipped.");
+  });
+});
+
+describe('transactionsToCSV', () => {
+  const saved = [
+    { id: 'a', date: '2026-10-31T00:00:00.000Z', amount: 450, category: 'Food' as const, type: 'expense' as const, description: 'Swiggy, "biryani"' },
+    { id: 'b', date: '2026-10-01T00:00:00.000Z', amount: 85000, category: 'Salary' as const, type: 'income' as const, description: 'October salary' },
+    { id: 'c', date: '2026-10-02T00:00:00.000Z', amount: 99, category: 'Other' as const, type: 'expense' as const, description: '=HYPERLINK("http://evil")' },
+  ];
+
+  it('quotes descriptions, so commas and quotes stay inside their column', () => {
+    const [header, first] = transactionsToCSV(saved).split('\n');
+    expect(header).toBe('Date,Description,Category,Type,Amount');
+    expect(first).toBe('2026-10-31,"Swiggy, ""biryani""",Food,expense,450');
+  });
+
+  it('stops a description from running as a spreadsheet formula', () => {
+    expect(transactionsToCSV(saved).split('\n')[3]).toContain(`"'=HYPERLINK(""http://evil"")"`);
+  });
+
+  it('can be imported back into Kharcha unchanged', () => {
+    const { rows, errors } = parseGeneric(transactionsToCSV(saved));
+    expect(errors).toEqual([]);
+    expect(rows).toEqual(saved.map(({ date, description, category, type, amount }) => ({ date, description, category, type, amount })));
   });
 });

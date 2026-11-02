@@ -1,21 +1,11 @@
 import { pgTable, text, integer, timestamp, pgEnum, boolean } from 'drizzle-orm/pg-core';
+import { CATEGORIES } from '../categories';
 
 export const transactionTypeEnum = pgEnum('transaction_type', ['income', 'expense']);
 
 export const frequencyEnum = pgEnum('frequency', ['weekly', 'monthly', 'yearly']);
 
-export const categoryEnum = pgEnum('category', [
-  'Salary',
-  'Freelance',
-  'Food',
-  'Transport',
-  'Entertainment',
-  'Shopping',
-  'Healthcare',
-  'Utilities',
-  'Rent',
-  'Other',
-]);
+export const categoryEnum = pgEnum('category', CATEGORIES);
 
 export const transactions = pgTable('transactions', {
   id: text('id').primaryKey(),
