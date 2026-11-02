@@ -6,6 +6,12 @@ const MAX_ROWS = 5000;
 const MAX_COLUMNS = 100;
 const MAX_PAGES = 50;
 
+/** A file Kharcha can't read as it is. The message says why, and is safe to show the user. */
+export class UnreadableFileError extends Error {}
+
+const LOCKED_PDF =
+  'This PDF is password-protected. Open it, save a copy without the password (for example with Print → Save as PDF), and upload that copy.';
+
 /**
  * The text of an uploaded statement: CSV and text as-is, each Excel sheet as CSV, PDF pages as
  * text. Stops early once `maxChars` is reached; `complete` is false when sheets or pages were
@@ -43,7 +49,10 @@ export async function extractTextFromFile(file: File, maxChars = Infinity): Prom
 
   if (ext === 'pdf') {
     const { getDocumentProxy } = await import('unpdf');
-    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    // Banks often lock statements with a password, which pdf.js reports as a PasswordException
+    const pdf = await getDocumentProxy(new Uint8Array(buffer)).catch((error: unknown) => {
+      throw (error as Error)?.name === 'PasswordException' ? new UnreadableFileError(LOCKED_PDF) : error;
+    });
     const pages: string[] = [];
     let length = 0;
     for (let number = 1; number <= Math.min(pdf.numPages, MAX_PAGES) && length <= maxChars; number++) {
@@ -55,5 +64,5 @@ export async function extractTextFromFile(file: File, maxChars = Infinity): Prom
     return { text: pages.join('\n'), complete: pdf.numPages <= MAX_PAGES };
   }
 
-  throw new Error(`Unsupported file type: .${ext}`);
+  throw new UnreadableFileError(`Unsupported file type: .${ext}`);
 }

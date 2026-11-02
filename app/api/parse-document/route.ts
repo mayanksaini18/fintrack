@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/rate-limit';
 import { transactions } from '@/lib/db/schema';
 
 import { auth } from '@clerk/nextjs/server';
-import { extractTextFromFile } from '@/lib/document-text';
+import { extractTextFromFile, UnreadableFileError } from '@/lib/document-text';
 import { isUsableDate } from '@/lib/validation';
 
 // Reading a long statement can take a few minutes
@@ -96,12 +96,13 @@ export async function POST(request: Request) {
 
     return Response.json({ transactions, filename: name, truncated, unreadable: found.length - transactions.length });
   } catch (error) {
+    // A locked PDF or a file type it can't read: the message says what to do
+    if (error instanceof UnreadableFileError) return Response.json({ error: error.message }, { status: 422 });
     if (NoObjectGeneratedError.isInstance(error)) {
       if (error.finishReason === 'length') return Response.json({ error: TOO_LONG }, { status: 422 });
       if (error.finishReason === 'content-filter') return Response.json({ error: DECLINED }, { status: 422 });
     }
     console.error('POST /api/parse-document:', error);
-    const message = error instanceof Error && error.message.startsWith('Unsupported file type') ? error.message : 'Failed to parse document';
-    return Response.json({ error: message }, { status: 500 });
+    return Response.json({ error: 'Failed to parse document' }, { status: 500 });
   }
 }

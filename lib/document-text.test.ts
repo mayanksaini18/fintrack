@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
-import { tinyPdf } from '@/test/anthropic';
+import { lockedPdf, tinyPdf } from '@/test/anthropic';
 import { extractTextFromFile } from './document-text';
 
 const asFile = (bytes: Uint8Array<ArrayBuffer>, name: string) => new File([bytes], name);
@@ -40,5 +40,13 @@ describe('extractTextFromFile limits', () => {
     expect(text).toContain('Paid to Swiggy');
     expect(text).toContain('Paid to Uber');
     expect(complete).toBe(true);
+  });
+});
+
+describe('extractTextFromFile on files it cannot open', () => {
+  it('explains how to upload a password-protected PDF', async () => {
+    await expect(extractTextFromFile(asFile(new Uint8Array(lockedPdf()), 'statement.pdf'))).rejects.toThrow(
+      'This PDF is password-protected. Open it, save a copy without the password (for example with Print → Save as PDF), and upload that copy.',
+    );
   });
 });

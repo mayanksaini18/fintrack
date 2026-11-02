@@ -62,3 +62,14 @@ export function tinyPdf(text: string | string[]): Buffer {
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
   return Buffer.from(pdf, 'latin1');
 }
+
+/**
+ * A PDF that needs a password to open, as banks send statements. Its password check (/U) matches
+ * no password, which is all a reader looks at before asking for one.
+ */
+export function lockedPdf(): Buffer {
+  const id = '0123456789abcdef0123456789abcdef';
+  const encrypt = `/Encrypt << /Filter /Standard /V 1 /R 2 /O <${'ab'.repeat(32)}> /U <${'cd'.repeat(32)}> /P -44 >> /ID [<${id}> <${id}>]`;
+  // The trailer comes after every object and the xref table, so no offset moves
+  return Buffer.from(tinyPdf('Paid to Swiggy').toString('latin1').replace('/Root 1 0 R >>', `/Root 1 0 R ${encrypt} >>`), 'latin1');
+}
