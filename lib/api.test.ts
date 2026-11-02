@@ -25,6 +25,11 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/transactions')).rejects.toThrow(/check/i);
   });
 
+  it('asks the user to sign in again on a 401, whatever the server says', async () => {
+    respond(401, { error: 'Unauthorized' });
+    await expect(apiFetch('/api/budgets')).rejects.toThrow(/sign in again/);
+  });
+
   it('throws when the response is not JSON', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>Not found</html>', { status: 404 })));
     await expect(apiFetch('/api/transactions')).rejects.toThrow();

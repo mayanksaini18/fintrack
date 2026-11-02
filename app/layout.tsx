@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 
@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   title: "Kharcha",
   description: "Track expenses, set budgets, and get AI-powered financial insights.",
   manifest: "/manifest.json",
-  themeColor: "#0ea5e9",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -25,6 +24,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0ea5e9",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +41,6 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
           <meta name="mobile-web-app-capable" content="yes" />
         </head>
         <body className="antialiased">
