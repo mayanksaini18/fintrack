@@ -14,247 +14,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Category, TransactionType } from '@/types';
-
-// ─── CSV line parser ──────────────────────────────────────────────────────────
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    if (line[i] === '"') { inQuotes = !inQuotes; continue; }
-    if (line[i] === ',' && !inQuotes) { result.push(current.trim()); current = ''; continue; }
-    current += line[i];
-  }
-  result.push(current.trim());
-  return result;
-}
-
-// ─── Category rules ───────────────────────────────────────────────────────────
-function mapCategory(paytmTag: string, description: string): Category {
-  const tag = paytmTag.toLowerCase();
-  const desc = description.toLowerCase();
-
-  if (tag.includes('food') || tag.includes('groceries')) return 'Food';
-  if (tag.includes('shopping')) return 'Shopping';
-
-  if (tag.includes('bill')) {
-    if (
-      desc.includes('jio') || desc.includes('airtel') || desc.includes('vi ') ||
-      desc.includes('bsnl') || desc.includes('recharge') || desc.includes('electricity') ||
-      desc.includes('bescom') || desc.includes('tata power') || desc.includes('wifi') ||
-      desc.includes('broadband') || desc.includes('internet')
-    ) return 'Utilities';
-    return 'Other'; // credit card bills, etc.
-  }
-
-  if (tag.includes('investment')) return 'Other';
-
-  // Description fallbacks
-  if (desc.includes('salary') || desc.includes('payroll')) return 'Salary';
-  if (desc.includes('rent')) return 'Rent';
-  if (desc.includes('uber') || desc.includes('ola') || desc.includes('rapido') ||
-      desc.includes('petrol') || desc.includes('metro') || desc.includes('irctc') ||
-      desc.includes('flight') || desc.includes('fastag')) return 'Transport';
-  if (desc.includes('apollo') || desc.includes('hospital') || desc.includes('pharmacy') ||
-      desc.includes('medical') || desc.includes('doctor')) return 'Healthcare';
-  if (desc.includes('zomato') || desc.includes('swiggy') || desc.includes('dominos') ||
-      desc.includes('cafe') || desc.includes('restaurant') || desc.includes('tiffins') ||
-      desc.includes('food')) return 'Food';
-  if (desc.includes('amazon') || desc.includes('flipkart') || desc.includes('myntra') ||
-      desc.includes('ajio') || desc.includes('nykaa')) return 'Shopping';
-  if (desc.includes('netflix') || desc.includes('spotify') || desc.includes('prime') ||
-      desc.includes('hotstar') || desc.includes('pvr') || desc.includes('bookmyshow')) return 'Entertainment';
-
-  return 'Other';
-}
-
-// ─── Shared types ─────────────────────────────────────────────────────────────
-interface ParsedRow {
-  date: string;
-  description: string;
-  amount: number;
-  type: TransactionType;
-  category: Category;
-}
-
-// ─── Paytm-specific parser ────────────────────────────────────────────────────
-// Paytm CSV format: each transaction spans 3-5 rows.
-// Row 0: "DD Mon" | Description | Tag: | Bank | "± Rs.Amount"
-// Row 1: "H:MM AM/PM" | (name cont.) | (note cont.) | (bank cont.) | -
-// Row 2: "" | "UPI ID: ..." | "# Category" | "Bank-XXXX" | -
-// Row 3: "" | "UPI Ref No: ..." | ... | - | -
-// Row 4 (sometimes): "" | "Order ID: ..." | - | - | -
-// Self-transfers have no ± sign and are followed by "Note: This payment is not included..."
-
-const MONTH_MAP: Record<string, string> = {
-  Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06',
-  Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12',
-};
-// Oct–Dec are 2025 for this statement, Jan–Apr are 2026
-const MONTH_YEAR: Record<string, number> = {
-  Jan:2026, Feb:2026, Mar:2026, Apr:2026, May:2026, Jun:2026,
-  Jul:2026, Aug:2026, Sep:2026, Oct:2025, Nov:2025, Dec:2025,
-};
-const DATE_RE = /^(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;
-
-const SKIP_RE = [
-  /^Page\d+of\d+/i,
-  /^Passbook Payments/i,
-  /^All payments done/i,
-  /^Date &/i,
-  /^,Transaction Details/i,
-  /^Time,/i,
-  /^Note: This payment is not included/i,
-  /^For any queries/i,
-  /^Contact Us/i,
-  /^Paytm Statement/i,
-  /^Accounts,/i,
-  /^Gold Coins/i,
-  /^Tamilnad Mercantile/i,
-  /^Kotak Mahindra/i,
-  /^\d+ Payments/i,
-];
-
-function parsePaytm(csvText: string): { rows: ParsedRow[]; errors: string[] } {
-  const rawLines = csvText.split('\n');
-  const rows: ParsedRow[] = [];
-  const errors: string[] = [];
-
-  // Group raw lines into transaction blocks
-  // A block starts when col[0] matches DD Mon pattern
-  const blocks: string[][][] = []; // array of blocks, each block = array of parsed CSV rows
-  let currentBlock: string[][] | null = null;
-
-  for (const raw of rawLines) {
-    const trimmed = raw.trim();
-    if (!trimmed) continue;
-
-    // Skip known boilerplate lines
-    if (SKIP_RE.some((r) => r.test(trimmed))) {
-      // A page break ends the current block too
-      if (currentBlock && currentBlock.length > 0) {
-        blocks.push(currentBlock);
-        currentBlock = null;
-      }
-      continue;
-    }
-
-    const cols = parseCSVLine(trimmed);
-    const col0 = cols[0]?.trim() ?? '';
-
-    if (DATE_RE.test(col0)) {
-      // Save previous block, start new one
-      if (currentBlock && currentBlock.length > 0) blocks.push(currentBlock);
-      currentBlock = [cols];
-    } else if (currentBlock) {
-      currentBlock.push(cols);
-    }
-  }
-  if (currentBlock && currentBlock.length > 0) blocks.push(currentBlock);
-
-  // Parse each block
-  for (const block of blocks) {
-    const firstRow = block[0];
-    const dateStr = firstRow[0]?.trim() ?? '';
-    const description = firstRow[1]?.trim() ?? '';
-    const amountStr = firstRow[4]?.trim() ?? '';
-
-    // Skip self transfers (no ± prefix)
-    if (!amountStr.startsWith('+') && !amountStr.startsWith('-')) continue;
-    if (description.toLowerCase().includes('transferred to self')) continue;
-    if (block.some((r) => r.join(',').toLowerCase().includes('# self transfer'))) continue;
-
-    // Parse date
-    const dm = dateStr.match(DATE_RE);
-    if (!dm) continue;
-    const day = dm[1].padStart(2, '0');
-    const monStr = dm[2];
-    const year = MONTH_YEAR[monStr] ?? 2026;
-    const isoDate = `${year}-${MONTH_MAP[monStr]}-${day}T00:00:00.000Z`;
-
-    // Parse amount
-    const isIncome = amountStr.startsWith('+');
-    const cleanAmt = amountStr.replace(/[+\-Rs.,\s]/g, '');
-    const amount = parseFloat(cleanAmt);
-    if (isNaN(amount) || amount <= 0) {
-      errors.push(`Skipped: "${description}" — invalid amount "${amountStr}"`);
-      continue;
-    }
-
-    // Extract Paytm tag from all rows' col[2]
-    let paytmTag = '';
-    for (const r of block) {
-      const col2 = r[2]?.trim() ?? '';
-      if (col2.startsWith('#')) { paytmTag = col2; break; }
-    }
-
-    const type: TransactionType = isIncome ? 'income' : 'expense';
-    const category = mapCategory(paytmTag, description);
-
-    rows.push({ date: isoDate, description, amount: Math.round(amount), type, category });
-  }
-
-  return { rows, errors };
-}
-
-// ─── Generic CSV parser (fallback for non-Paytm) ──────────────────────────────
-function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: string[] } {
-  const lines = csvText.trim().split('\n').filter(Boolean);
-  if (lines.length < 2) return { rows: [], errors: ['File is empty'] };
-
-  const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
-  const rows: ParsedRow[] = [];
-  const errors: string[] = [];
-
-  const dateIdx = headers.findIndex((h) => h.includes('date'));
-  const descIdx = headers.findIndex((h) =>
-    h.includes('narration') || h.includes('particular') || h.includes('description') || h.includes('details')
-  );
-  const debitIdx = headers.findIndex((h) => h.includes('debit') || h.includes('withdrawal'));
-  const creditIdx = headers.findIndex((h) => h.includes('credit') || h.includes('deposit'));
-  const amountIdx = headers.findIndex((h) => h === 'amount' || h === 'amt');
-
-  if (dateIdx === -1 || descIdx === -1 || (debitIdx === -1 && creditIdx === -1 && amountIdx === -1)) {
-    return { rows: [], errors: ['Could not detect columns. Expected Date, Description, and Debit/Credit or Amount columns.'] };
-  }
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    const rawDate = cols[dateIdx]?.trim() ?? '';
-    const description = cols[descIdx]?.trim() ?? `Transaction ${i}`;
-
-    // Try to parse date
-    let isoDate: string | null = null;
-    const m1 = rawDate.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
-    if (m1) isoDate = `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}T00:00:00.000Z`;
-    const m2 = rawDate.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
-    if (m2) isoDate = new Date(rawDate).toISOString();
-    if (!isoDate) { errors.push(`Row ${i + 1}: bad date "${rawDate}" — skipped`); continue; }
-
-    let amount = 0;
-    let type: TransactionType = 'expense';
-    if (amountIdx !== -1) {
-      amount = parseFloat((cols[amountIdx] ?? '').replace(/[₹,\s]/g, ''));
-      type = mapCategory('', description) === 'Salary' || mapCategory('', description) === 'Freelance' ? 'income' : 'expense';
-    } else {
-      const debit = parseFloat((cols[debitIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
-      const credit = parseFloat((cols[creditIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
-      if (credit > 0) { amount = credit; type = 'income'; }
-      else if (debit > 0) { amount = debit; type = 'expense'; }
-      else continue;
-    }
-    if (isNaN(amount) || amount <= 0) { errors.push(`Row ${i + 1}: bad amount — skipped`); continue; }
-
-    rows.push({ date: isoDate, description, amount: Math.round(amount), type, category: mapCategory('', description) });
-  }
-  return { rows, errors };
-}
-
-function isPaytmFormat(csvText: string): boolean {
-  const top = csvText.slice(0, 400).toLowerCase();
-  return top.includes('passbook payments history') || top.includes('paytm statement') || top.includes('total money paid');
-}
+import { describeImport, isPaytmFormat, parseGeneric, parsePaytm, type ParsedRow } from '@/lib/statement-import';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface Props { open: boolean; onClose: () => void; }
@@ -267,6 +27,7 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
   const [fileName, setFileName] = useState('');
   const [dragging, setDragging] = useState(false);
   const [detectedFormat, setDetectedFormat] = useState('');
+  const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(file: File) {
@@ -285,9 +46,17 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
   }
 
   async function handleImport() {
-    await importTransactions(parsed);
-    toast.success(`Imported ${parsed.length} transactions from ${detectedFormat}`);
-    handleClose();
+    if (importing) return;
+    setImporting(true);
+    try {
+      const result = await importTransactions(parsed);
+      (result.inserted > 0 ? toast.success : toast.info)(describeImport(result));
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
+    }
   }
 
   function handleClose() {
@@ -445,10 +214,10 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
             Cancel
           </Button>
           {step === 'preview' && parsed.length > 0 && (
-            <Button size="sm" onClick={handleImport}
+            <Button size="sm" onClick={handleImport} disabled={importing}
               className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Import {parsed.length} transactions
+              {importing ? 'Importing…' : `Import ${parsed.length} transactions`}
             </Button>
           )}
         </DialogFooter>

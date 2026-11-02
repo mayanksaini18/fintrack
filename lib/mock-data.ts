@@ -1,4 +1,5 @@
 import { Transaction } from '@/types';
+import { addPeriods } from '@/lib/recurring';
 
 export const mockTransactions: Transaction[] = [
   // ── November 2025 ──────────────────────────────────────────
@@ -114,7 +115,7 @@ export const mockTransactions: Transaction[] = [
     amount: 6500,
     category: 'Shopping',
     type: 'expense',
-    description: 'Amazon – Christmas gifts',
+    description: 'Amazon – gifts for family',
   },
   {
     id: 'dec5',
@@ -130,7 +131,7 @@ export const mockTransactions: Transaction[] = [
     amount: 2400,
     category: 'Entertainment',
     type: 'expense',
-    description: 'New Year party – Bangalore',
+    description: 'Party with friends – Bangalore',
   },
   {
     id: 'dec7',
@@ -408,7 +409,7 @@ export const mockTransactions: Transaction[] = [
     amount: 1800,
     category: 'Entertainment',
     type: 'expense',
-    description: 'Holi party + outing',
+    description: 'Weekend outing with friends',
   },
   {
     id: '32',
@@ -474,6 +475,33 @@ export const mockTransactions: Transaction[] = [
     amount: 1200,
     category: 'Entertainment',
     type: 'expense',
-    description: 'IPL match tickets',
+    description: 'Cricket match tickets',
   },
 ];
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/**
+ * The demo data for signed-out visitors, moved forward by whole months so it ends in the
+ * current month (month names in descriptions move with it). Anything that would land after
+ * `now` is left out, so the current month fills in as it goes.
+ */
+export function getDemoTransactions(now = new Date()): Transaction[] {
+  const last = new Date(Math.max(...mockTransactions.map((t) => Date.parse(t.date))));
+  const offset = (now.getUTCFullYear() - last.getUTCFullYear()) * 12 + (now.getUTCMonth() - last.getUTCMonth());
+
+  return mockTransactions
+    .map((t) => {
+      const original = new Date(t.date);
+      const moved = addPeriods(original, 'monthly', offset);
+      return {
+        ...t,
+        date: moved.toISOString(),
+        description: t.description.replace(MONTH_NAMES[original.getUTCMonth()], MONTH_NAMES[moved.getUTCMonth()]),
+      };
+    })
+    .filter((t) => Date.parse(t.date) <= now.getTime());
+}

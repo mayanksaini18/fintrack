@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, Target, TrendingUp, MessageSquareText } from 'lucide-react';
+import { LayoutDashboard, Receipt, Target, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -10,7 +10,8 @@ const navItems = [
   { href: '/transactions', label: 'Transactions', icon: Receipt },
   { href: '/budgets', label: 'Budgets', icon: Target },
   { href: '/insights', label: 'Insights', icon: TrendingUp },
-  { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
+  // AI Chat is switched off for now; see the note in Sidebar.tsx.
+  // { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
 ];
 
 export default function MobileNav() {

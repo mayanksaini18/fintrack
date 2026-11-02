@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFinanceStore } from '@/lib/store';
 import { Transaction, Category, TransactionType } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -31,14 +31,14 @@ import {
 } from '@/components/ui/select';
 import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, AlertTriangle, FileUp, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toWholeRupees } from '@/lib/money';
+import { applyFilters } from '@/lib/filters';
+import { transactionsToCSV } from '@/lib/statement-import';
+import { selectedInView, toggleOne, togglePage } from '@/lib/selection';
 import { toast } from 'sonner';
 import AddTransactionDialog from './AddTransactionDialog';
 import ImportCSVDialog from './ImportCSVDialog';
-
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
+import { CATEGORIES } from '@/lib/categories';
 
 const PAGE_SIZE = 10;
 
@@ -56,21 +56,40 @@ const CATEGORY_DOT: Record<string, string> = {
 };
 
 export default function TransactionTable() {
-  const { transactions, role, deleteTransaction, updateTransaction, bulkDeleteTransactions } = useFinanceStore();
+  const { transactions, filters, role, deleteTransaction, updateTransaction, bulkDeleteTransactions } = useFinanceStore();
+  const visible = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
   const isAdmin = role === 'admin';
 
-  const [page, setPage] = useState(1);
+  // The page lives in the store so changing a filter can send it back to page 1
+  const page = useFinanceStore((s) => s.page);
+  const setPage = useFinanceStore((s) => s.setPage);
   const [addOpen, setAddOpen] = useState(false);
+  // A new key each time the dialog opens gives it a fresh form, with today's date
+  const [addKey, setAddKey] = useState(0);
   const [importOpen, setImportOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [editForm, setEditForm] = useState<Partial<Transaction>>({});
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
+  // Runs one save or delete at a time and reports a failure instead of a fake success
+  async function run(action: () => Promise<void>, failure: string) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await action();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : failure);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(page, totalPages);
-  const paged = transactions.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+  const paged = visible.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
 
   function openEdit(tx: Transaction) {
     setEditTx(tx);
@@ -85,75 +104,83 @@ export default function TransactionTable() {
 
   async function saveEdit() {
     if (!editTx) return;
-    await updateTransaction(editTx.id, {
-      ...editForm,
-      date: editForm.date ? new Date(editForm.date).toISOString() : editTx.date,
-    });
-    setEditTx(null);
-    toast.success('Transaction updated');
+    const amount = toWholeRupees(editForm.amount ?? '');
+    if (amount === null) {
+      toast.error('Enter an amount of at least ₹1');
+      return;
+    }
+    await run(async () => {
+      await updateTransaction(editTx.id, {
+        ...editForm,
+        amount,
+        date: editForm.date ? new Date(editForm.date).toISOString() : editTx.date,
+      });
+      setEditTx(null);
+      toast.success(
+        amount === editForm.amount
+          ? 'Transaction updated'
+          : `Transaction updated to ₹${amount.toLocaleString('en-IN')} (Kharcha stores whole rupees)`
+      );
+    }, 'Could not update the transaction');
   }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    await deleteTransaction(deleteTarget.id);
-    toast.success('Transaction deleted');
-    setDeleteTarget(null);
+    await run(async () => {
+      await deleteTransaction(deleteTarget.id);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
+      toast.success('Transaction deleted');
+      setDeleteTarget(null);
+    }, 'Could not delete the transaction');
   }
 
   function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setSelected((prev) => toggleOne(prev, id));
   }
 
   function toggleSelectAll() {
-    if (selected.size === paged.length && paged.length > 0) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(paged.map((tx) => tx.id)));
-    }
+    setSelected((prev) => togglePage(prev, paged.map((tx) => tx.id)));
   }
 
   async function confirmBulkDelete() {
-    await bulkDeleteTransactions(Array.from(selected));
-    toast.success(`${selected.size} transaction${selected.size !== 1 ? 's' : ''} deleted`);
-    setSelected(new Set());
-    setBulkDeleteOpen(false);
+    const count = selectedIds.length;
+    await run(async () => {
+      await bulkDeleteTransactions(selectedIds);
+      toast.success(`${count} transaction${count !== 1 ? 's' : ''} deleted`);
+      setSelected(new Set());
+      setBulkDeleteOpen(false);
+    }, 'Could not delete the transactions');
   }
 
   function exportCSV() {
-    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount'];
-    const rows = transactions.map((tx) => [
-      formatDate(tx.date),
-      `"${tx.description.replace(/"/g, '""')}"`,
-      tx.category,
-      tx.type,
-      tx.amount.toFixed(2),
-    ]);
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    // The byte-order mark makes Excel read the file as UTF-8 (₹, – and other non-ASCII text)
+    const blob = new Blob(['\uFEFF' + transactionsToCSV(visible)], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `kharcha-transactions-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`Exported ${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`);
+    toast.success(`Exported ${visible.length} transaction${visible.length !== 1 ? 's' : ''}`);
   }
 
+  // Rows ticked and then hidden by the search or filters are not counted or deleted
+  const selectedIds = selectedInView(visible, selected);
   const allPageSelected = paged.length > 0 && paged.every((tx) => selected.has(tx.id));
   const somePageSelected = paged.some((tx) => selected.has(tx.id));
 
   return (
     <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
       {/* Bulk action bar */}
-      {selected.size > 0 && (
+      {selectedIds.length > 0 && (
         <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900 dark:glass dark:border-white/[0.12] text-white dark:text-white">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-4 h-4" />
-            <span className="text-sm font-medium">{selected.size} selected</span>
+            <span className="text-sm font-medium">{selectedIds.length} selected</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -170,7 +197,7 @@ export default function TransactionTable() {
               onClick={() => setBulkDeleteOpen(true)}
             >
               <Trash2 className="w-3.5 h-3.5 mr-1" />
-              Delete {selected.size}
+              Delete {selectedIds.length}
             </Button>
           </div>
         </div>
@@ -182,7 +209,7 @@ export default function TransactionTable() {
           size="sm"
           className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white font-normal backdrop-blur-sm"
           onClick={exportCSV}
-          disabled={transactions.length === 0}
+          disabled={visible.length === 0}
         >
           <Download className="w-3.5 h-3.5" />
           Export CSV
@@ -201,7 +228,10 @@ export default function TransactionTable() {
             <Button
               size="sm"
               className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white font-medium rounded-lg px-3"
-              onClick={() => setAddOpen(true)}
+              onClick={() => {
+                setAddKey((k) => k + 1);
+                setAddOpen(true);
+              }}
             >
               <Plus className="w-3.5 h-3.5" />
               Add Transaction
@@ -321,10 +351,10 @@ export default function TransactionTable() {
         </div>
       </div>
 
-      {transactions.length > 0 && (
+      {visible.length > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-zinc-400 dark:text-white/30">
-            {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, transactions.length)} of {transactions.length}
+            {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, visible.length)} of {visible.length}
           </p>
           <div className="flex items-center gap-1">
             <Button
@@ -332,7 +362,7 @@ export default function TransactionTable() {
               size="icon"
               className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setPage(safeCurrentPage - 1)}
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </Button>
@@ -344,7 +374,7 @@ export default function TransactionTable() {
               size="icon"
               className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setPage(safeCurrentPage + 1)}
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </Button>
@@ -353,7 +383,7 @@ export default function TransactionTable() {
       )}
 
       {/* Add dialog */}
-      <AddTransactionDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddTransactionDialog key={addKey} open={addOpen} onClose={() => setAddOpen(false)} />
 
       {/* Import dialog */}
       <ImportCSVDialog open={importOpen} onClose={() => setImportOpen(false)} />
@@ -377,8 +407,8 @@ export default function TransactionTable() {
               <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Amount (₹)</label>
               <Input
                 type="number"
-                min={0.01}
-                step={0.01}
+                min={1}
+                step={1}
                 value={editForm.amount ?? ''}
                 onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })}
                 className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
@@ -425,8 +455,8 @@ export default function TransactionTable() {
             <Button variant="outline" size="sm" onClick={() => setEditTx(null)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={saveEdit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-              Save
+            <Button size="sm" onClick={saveEdit} disabled={busy} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+              {busy ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -440,18 +470,18 @@ export default function TransactionTable() {
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-500/10 dark:border dark:border-rose-500/20 shrink-0">
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
               </div>
-              <DialogTitle className="text-sm font-semibold dark:text-white">Delete {selected.size} Transactions</DialogTitle>
+              <DialogTitle className="text-sm font-semibold dark:text-white">Delete {selectedIds.length} Transactions</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed pl-12">
-              This will permanently delete {selected.size} transaction{selected.size !== 1 ? 's' : ''}. This cannot be undone.
+              This will permanently delete {selectedIds.length} transaction{selectedIds.length !== 1 ? 's' : ''}. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(false)} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85">
               Cancel
             </Button>
-            <Button size="sm" onClick={confirmBulkDelete} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
-              Delete {selected.size}
+            <Button size="sm" onClick={confirmBulkDelete} disabled={busy} className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white">
+              {busy ? 'Deleting…' : `Delete ${selectedIds.length}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -484,9 +514,10 @@ export default function TransactionTable() {
             <Button
               size="sm"
               onClick={confirmDelete}
+              disabled={busy}
               className="h-8 text-xs bg-rose-500 hover:bg-rose-600 text-white"
             >
-              Delete
+              {busy ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

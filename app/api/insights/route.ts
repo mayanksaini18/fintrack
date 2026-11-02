@@ -2,19 +2,21 @@ import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
-import { mockTransactions } from '@/lib/mock-data';
+import { getDemoTransactions } from '@/lib/mock-data';
 
 export async function GET() {
   const { userId } = await auth();
 
   let allTx;
   if (!userId) {
-    allTx = mockTransactions.map((t) => ({
+    allTx = getDemoTransactions().map((t) => ({
       ...t,
       date: new Date(t.date),
     }));
   } else {
-    allTx = await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.date));
+    const loaded = await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(desc(transactions.date));
+    // A stored date that can't be read back would otherwise break every calculation below
+    allTx = loaded.filter((t) => !Number.isNaN(t.date.getTime()));
   }
 
   if (allTx.length === 0) {

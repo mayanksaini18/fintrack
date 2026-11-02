@@ -19,12 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Category, TransactionType } from '@/types';
+import { toWholeRupees } from '@/lib/money';
+import { dateInputValue } from '@/lib/utils';
 import { toast } from 'sonner';
-
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
+import { CATEGORIES } from '@/lib/categories';
 
 interface Props {
   open: boolean;
@@ -54,15 +52,15 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
     amount: '',
     category: '',
     type: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dateInputValue(),
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [saving, setSaving] = useState(false);
 
   function validate(): boolean {
     const e: FormErrors = {};
     if (!form.description.trim()) e.description = 'Required';
-    if (!form.amount || isNaN(Number(form.amount)) || Number(form.amount) <= 0)
-      e.amount = 'Enter a valid amount';
+    if (toWholeRupees(form.amount) === null) e.amount = 'Enter an amount of at least ₹1';
     if (!form.category) e.category = 'Required';
     if (!form.type) e.type = 'Required';
     if (!form.date) e.date = 'Required';
@@ -71,20 +69,32 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
   }
 
   async function handleSubmit() {
-    if (!validate()) return;
-    await addTransaction({
-      description: form.description.trim(),
-      amount: Number(form.amount),
-      category: form.category as Category,
-      type: form.type as TransactionType,
-      date: new Date(form.date).toISOString(),
-    });
-    toast.success('Transaction added');
-    handleClose();
+    if (saving || !validate()) return;
+    const amount = toWholeRupees(form.amount)!;
+    setSaving(true);
+    try {
+      await addTransaction({
+        description: form.description.trim(),
+        amount,
+        category: form.category as Category,
+        type: form.type as TransactionType,
+        date: new Date(form.date).toISOString(),
+      });
+      toast.success(
+        amount === Number(form.amount)
+          ? 'Transaction added'
+          : `Transaction added as ₹${amount.toLocaleString('en-IN')} (Kharcha stores whole rupees)`
+      );
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not add the transaction');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleClose() {
-    setForm({ description: '', amount: '', category: '', type: '', date: new Date().toISOString().split('T')[0] });
+    setForm({ description: '', amount: '', category: '', type: '', date: dateInputValue() });
     setErrors({});
     onClose();
   }
@@ -112,9 +122,9 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
             <label className="text-xs font-medium text-zinc-600 dark:text-white/50">Amount (₹)</label>
             <Input
               type="number"
-              placeholder="0.00"
-              min={0.01}
-              step={0.01}
+              placeholder="0"
+              min={1}
+              step={1}
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
               className="h-8 text-sm border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85"
@@ -169,8 +179,8 @@ export default function AddTransactionDialog({ open, onClose }: Props) {
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/60 dark:hover:text-white">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-            Add
+          <Button size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+            {saving ? 'Adding…' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

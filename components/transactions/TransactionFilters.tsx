@@ -11,12 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, ArrowUpDown, X } from 'lucide-react';
-import { Category } from '@/types';
-
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
+import { CATEGORIES } from '@/lib/categories';
 
 export default function TransactionFilters() {
   const { filters, setFilter } = useFinanceStore();

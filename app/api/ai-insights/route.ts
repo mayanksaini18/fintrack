@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { AI_MODEL } from '@/lib/ai';
+import { AI_MODEL, AI_PROVIDER_OPTIONS } from '@/lib/ai';
 import { rateLimit } from '@/lib/rate-limit';
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
@@ -13,12 +13,14 @@ export async function GET() {
   const { ok } = rateLimit(userId, 5, 60_000);
   if (!ok) return Response.json({ error: 'Too many requests. Try again in a minute.' }, { status: 429 });
 
-  const allTx = await db
+  const loaded = await db
     .select()
     .from(transactions)
     .where(eq(transactions.userId, userId))
     .orderBy(desc(transactions.date))
     .limit(200);
+  // A stored date that can't be read back would otherwise break the summary
+  const allTx = loaded.filter((t) => !Number.isNaN(t.date.getTime()));
 
   if (allTx.length < 3) {
     return Response.json({
@@ -34,8 +36,10 @@ export async function GET() {
     description: t.description,
   }));
 
-  const { text } = await generateText({
+  const { text, finishReason } = await generateText({
     model: AI_MODEL,
+    providerOptions: AI_PROVIDER_OPTIONS,
+    maxOutputTokens: 4000,
     system: `You are a personal finance advisor analyzing a user's transaction data.
 Give concise, actionable insights in plain language. Use Indian Rupee (₹) for amounts.
 Format your response as 4-6 bullet points using markdown. Each bullet should be a specific,
@@ -43,6 +47,10 @@ data-driven insight — not generic advice. Include specific numbers and percent
 Keep the tone friendly and encouraging.`,
     prompt: `Analyze these transactions and give me personalized financial insights:\n\n${JSON.stringify(summary)}`,
   });
+
+  if (finishReason === 'content-filter') {
+    return Response.json({ error: "Kharcha couldn't write insights for this data. Try again later." }, { status: 422 });
+  }
 
   return Response.json({ insights: text });
 }

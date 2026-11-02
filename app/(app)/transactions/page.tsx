@@ -5,11 +5,14 @@ import TransactionFilters from '@/components/transactions/TransactionFilters';
 import TransactionTable from '@/components/transactions/TransactionTable';
 import SmartImportDialog from '@/components/transactions/SmartImportDialog';
 import { useInitTransactions } from '@/lib/useInitTransactions';
+import { useFinanceStore } from '@/lib/store';
+import LoadError from '@/components/LoadError';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 
 export default function TransactionsPage() {
-  const { loading } = useInitTransactions();
+  const { loading, loadError, retry } = useInitTransactions();
+  const hasTransactions = useFinanceStore((s) => s.transactions.length > 0);
   const [showSmartImport, setShowSmartImport] = useState(false);
 
   if (loading) {
@@ -37,8 +40,14 @@ export default function TransactionsPage() {
           Smart Import
         </Button>
       </div>
-      <TransactionFilters />
-      <TransactionTable />
+      {loadError && !hasTransactions ? (
+        <LoadError what="transactions" onRetry={retry} />
+      ) : (
+        <>
+          <TransactionFilters />
+          <TransactionTable />
+        </>
+      )}
       <SmartImportDialog open={showSmartImport} onClose={() => setShowSmartImport(false)} />
     </div>
   );

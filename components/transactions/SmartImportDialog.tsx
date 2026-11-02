@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Loader2, Check, X, Sparkles } from 'lucide-react';
+import { Upload, FileText, Loader2, Check, Sparkles, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Transaction } from '@/types';
 import { toast } from 'sonner';
+import { describeImport } from '@/lib/statement-import';
+import { apiFetch } from '@/lib/api';
 
 interface ParsedTransaction {
   date: string;
@@ -38,6 +40,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
   const [parsed, setParsed] = useState<ParsedTransaction[]>([]);
   const [filename, setFilename] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [truncated, setTruncated] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -51,17 +54,19 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/parse-document', { method: 'POST', body: formData });
+      const res = await apiFetch('/api/parse-document', { method: 'POST', body: formData });
       const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Failed to parse');
 
       const withSelection = data.transactions.map((t: Omit<ParsedTransaction, 'selected'>) => ({
         ...t,
         selected: true,
       }));
       setParsed(withSelection);
+      setTruncated(Boolean(data.truncated));
       setStep('review');
+      if (data.unreadable > 0) {
+        toast.info(`${data.unreadable} row${data.unreadable > 1 ? 's' : ''} had a date that couldn't be read and ${data.unreadable > 1 ? 'were' : 'was'} left out`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse document');
       setStep('upload');
@@ -96,22 +101,22 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     if (selected.length === 0) return;
 
     setImporting(true);
-    const txns: Omit<Transaction, 'id'>[] = selected.map((t) => ({
-      date: new Date(t.date).toISOString(),
-      amount: t.amount,
-      type: t.type,
-      category: t.category as Transaction['category'],
-      description: t.description,
-    }));
-
     try {
-      await importTransactions(txns);
-      toast.success(`Imported ${selected.length} transactions from ${filename}`);
+      const txns: Omit<Transaction, 'id'>[] = selected.map((t) => ({
+        date: new Date(t.date).toISOString(),
+        amount: t.amount,
+        type: t.type,
+        category: t.category as Transaction['category'],
+        description: t.description,
+      }));
+      const result = await importTransactions(txns);
+      (result.inserted > 0 ? toast.success : toast.info)(describeImport(result));
       handleClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setImporting(false);
     }
-    setImporting(false);
   }
 
   function handleClose() {
@@ -119,6 +124,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     setParsed([]);
     setFilename('');
     setError(null);
+    setTruncated(false);
     if (fileRef.current) fileRef.current.value = '';
     onClose();
   }
@@ -206,6 +212,15 @@ export default function SmartImportDialog({ open, onClose }: Props) {
                 {parsed.every((t) => t.selected) ? 'Deselect all' : 'Select all'}
               </Button>
             </div>
+
+            {truncated && (
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  This statement is long, so only the first part was read. Split it into smaller files to import the rest.
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-3 text-xs text-zinc-500 px-1">
               <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{selectedCount}</strong></span>

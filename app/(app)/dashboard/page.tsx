@@ -4,6 +4,7 @@ import SummaryCards from '@/components/dashboard/SummaryCards';
 import BalanceTrendChart from '@/components/dashboard/BalanceTrendChart';
 import SpendingBreakdownChart from '@/components/dashboard/SpendingBreakdownChart';
 import EmptyState from '@/components/dashboard/EmptyState';
+import LoadError from '@/components/LoadError';
 import { useInitTransactions } from '@/lib/useInitTransactions';
 import { useFinanceStore } from '@/lib/store';
 import { useUser } from '@clerk/nextjs';
@@ -11,7 +12,7 @@ import { Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const { loading } = useInitTransactions();
+  const { loading, loadError, retry } = useInitTransactions();
   const { isSignedIn } = useUser();
   const transactions = useFinanceStore((s) => s.transactions);
 
@@ -21,6 +22,10 @@ export default function DashboardPage() {
         <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
       </div>
     );
+  }
+
+  if (loadError && transactions.length === 0) {
+    return <LoadError what="transactions" onRetry={retry} />;
   }
 
   if (!loading && isSignedIn && transactions.length === 0) {

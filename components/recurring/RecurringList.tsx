@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,13 +20,12 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2, Pause, Play, RefreshCw, CalendarClock } from 'lucide-react';
 import { Category, TransactionType, Frequency, RecurringTransaction } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { dateInputValue, formatCurrency } from '@/lib/utils';
+import { apiFetch } from '@/lib/api';
+import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
-
-const CATEGORIES: Category[] = [
-  'Salary', 'Freelance', 'Food', 'Transport', 'Entertainment',
-  'Shopping', 'Healthcare', 'Utilities', 'Rent', 'Other',
-];
+import { CATEGORIES } from '@/lib/categories';
+import LoadError from '@/components/LoadError';
 
 const FREQUENCY_LABELS: Record<Frequency, string> = {
   weekly: 'Weekly',
@@ -52,48 +51,84 @@ export default function RecurringList() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  // A new key each time the dialog opens gives it a fresh form, with today's date
+  const [addKey, setAddKey] = useState(0);
+  // Each load gets a number so a slow, older reply can't overwrite a newer one
+  const latestLoad = useRef(0);
 
   const fetchItems = useCallback(async () => {
-    const res = await fetch('/api/recurring');
-    const data = await res.json();
-    setItems(data);
-    setLoading(false);
+    const load = ++latestLoad.current;
+    try {
+      const res = await apiFetch('/api/recurring');
+      const data = await res.json();
+      if (load !== latestLoad.current) return;
+      setItems(data);
+      setLoadError(false);
+    } catch (err) {
+      if (load !== latestLoad.current) return;
+      setLoadError(true);
+      toast.error(err instanceof Error ? err.message : "Couldn't load your recurring items");
+    } finally {
+      if (load === latestLoad.current) setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   async function handleDelete(id: string) {
-    await fetch(`/api/recurring/${id}`, { method: 'DELETE' });
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success('Recurring item deleted');
+    try {
+      await apiFetch(`/api/recurring/${id}`, { method: 'DELETE' });
+      setItems((prev) => prev.filter((i) => i.id !== id));
+      toast.success('Recurring item deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not delete the recurring item');
+    }
   }
 
   async function handleToggle(id: string, isActive: boolean) {
-    await fetch(`/api/recurring/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, isActive: !isActive } : i))
-    );
-    toast.success(isActive ? 'Paused' : 'Resumed');
+    if (togglingId) return;
+    setTogglingId(id);
+    try {
+      await apiFetch(`/api/recurring/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        // today: so resuming skips the paused dates by the user's calendar, not UTC's
+        body: JSON.stringify({ isActive: !isActive, today: dateInputValue() }),
+      });
+      toast.success(isActive ? 'Paused' : 'Resumed');
+      // Resuming can move the next date past the paused period, so reload instead of patching locally
+      await fetchItems();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not update the recurring item');
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   async function handleProcess() {
     setProcessing(true);
-    const res = await fetch('/api/recurring/process', { method: 'POST' });
-    const data = await res.json();
-    if (data.created > 0) {
-      toast.success(`Created ${data.created} transaction${data.created > 1 ? 's' : ''} from recurring items`);
+    try {
+      const res = await apiFetch('/api/recurring/process', { method: 'POST' });
+      const data: { created: number; skipped: number } = await res.json();
+      if (data.created > 0) {
+        toast.success(`Created ${data.created} transaction${data.created > 1 ? 's' : ''} from recurring items`);
+      } else if (data.skipped > 0) {
+        toast.info(`Skipped ${data.skipped} missed date${data.skipped > 1 ? 's' : ''}. Next dates are updated.`);
+      } else {
+        toast.info('No recurring items are due yet');
+      }
       fetchItems();
-    } else {
-      toast.info('No recurring items are due yet');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not process recurring items. Please try again.');
+    } finally {
+      setProcessing(false);
     }
-    setProcessing(false);
   }
 
-  function formatNextDue(dateStr: string) {
+  function formatNextDue(dateStr: string | null) {
+    if (!dateStr) return { text: "Date can't be read: delete and add again", overdue: true };
     const date = new Date(dateStr);
     const now = new Date();
     const diff = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -120,6 +155,10 @@ export default function RecurringList() {
         ))}
       </div>
     );
+  }
+
+  if (loadError && items.length === 0) {
+    return <LoadError what="recurring items" onRetry={fetchItems} />;
   }
 
   return (
@@ -151,7 +190,10 @@ export default function RecurringList() {
           </Button>
           <Button
             size="sm"
-            onClick={() => setShowAdd(true)}
+            onClick={() => {
+              setAddKey((k) => k + 1);
+              setShowAdd(true);
+            }}
             className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -212,6 +254,7 @@ export default function RecurringList() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                      disabled={togglingId === item.id}
                       onClick={() => handleToggle(item.id, item.isActive)}
                     >
                       {item.isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -232,7 +275,7 @@ export default function RecurringList() {
         </div>
       )}
 
-      <AddRecurringDialog open={showAdd} onClose={() => setShowAdd(false)} onAdded={fetchItems} />
+      <AddRecurringDialog key={addKey} open={showAdd} onClose={() => setShowAdd(false)} onAdded={fetchItems} />
     </div>
   );
 }
@@ -244,14 +287,15 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
     category: '' as Category | '',
     type: '' as TransactionType | '',
     frequency: '' as Frequency | '',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: dateInputValue(),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   function validate() {
     const e: Record<string, string> = {};
     if (!form.description.trim()) e.description = 'Required';
-    if (!form.amount || Number(form.amount) <= 0) e.amount = 'Enter a valid amount';
+    if (toWholeRupees(form.amount) === null) e.amount = 'Enter an amount of at least ₹1';
     if (!form.category) e.category = 'Required';
     if (!form.type) e.type = 'Required';
     if (!form.frequency) e.frequency = 'Required';
@@ -261,26 +305,33 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
   }
 
   async function handleSubmit() {
-    if (!validate()) return;
-    await fetch('/api/recurring', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        description: form.description.trim(),
-        amount: Number(form.amount),
-        category: form.category,
-        type: form.type,
-        frequency: form.frequency,
-        startDate: new Date(form.startDate).toISOString(),
-      }),
-    });
-    toast.success('Recurring transaction added');
-    onAdded();
-    handleClose();
+    if (saving || !validate()) return;
+    setSaving(true);
+    try {
+      await apiFetch('/api/recurring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: form.description.trim(),
+          amount: toWholeRupees(form.amount),
+          category: form.category,
+          type: form.type,
+          frequency: form.frequency,
+          startDate: new Date(form.startDate).toISOString(),
+        }),
+      });
+      toast.success('Recurring transaction added');
+      onAdded();
+      handleClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not add the recurring transaction');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleClose() {
-    setForm({ description: '', amount: '', category: '', type: '', frequency: '', startDate: new Date().toISOString().split('T')[0] });
+    setForm({ description: '', amount: '', category: '', type: '', frequency: '', startDate: dateInputValue() });
     setErrors({});
     onClose();
   }
@@ -381,8 +432,8 @@ function AddRecurringDialog({ open, onClose, onAdded }: { open: boolean; onClose
           <Button variant="outline" size="sm" onClick={handleClose} className="h-8 text-xs border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-200">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleSubmit} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
-            Add
+          <Button size="sm" onClick={handleSubmit} disabled={saving} className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white">
+            {saving ? 'Adding…' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

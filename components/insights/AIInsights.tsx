@@ -3,22 +3,29 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { apiFetch } from '@/lib/api';
+import { renderInsightsMarkdown } from '@/lib/markdown';
 
 export default function AIInsights() {
   const [insights, setInsights] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isLoaded, isSignedIn } = useUser();
 
   async function fetchInsights() {
+    if (!isSignedIn) {
+      setError('Sign in to get AI insights on your own spending.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/ai-insights');
-      if (!res.ok) throw new Error('Failed to fetch insights');
+      const res = await apiFetch('/api/ai-insights');
       const data = await res.json();
       setInsights(data.insights);
-    } catch {
-      setError('Could not generate insights. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not generate insights. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -37,7 +44,7 @@ export default function AIInsights() {
           variant="ghost"
           size="sm"
           onClick={fetchInsights}
-          disabled={loading}
+          disabled={loading || !isLoaded}
           className="h-7 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-white/[0.06]"
         >
           {loading ? (
@@ -79,19 +86,10 @@ export default function AIInsights() {
 
         {insights && !loading && (
           <div className="prose prose-sm prose-zinc dark:prose-invert max-w-none [&_ul]:space-y-2 [&_li]:text-sm [&_li]:leading-relaxed [&_strong]:text-zinc-900 dark:[&_strong]:text-zinc-100">
-            <div dangerouslySetInnerHTML={{ __html: formatMarkdown(insights) }} />
+            <div dangerouslySetInnerHTML={{ __html: renderInsightsMarkdown(insights) }} />
           </div>
         )}
       </div>
     </div>
   );
-}
-
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.*?)$/gm, '<li>$1</li>')
-    .replace(/^• (.*?)$/gm, '<li>$1</li>')
-    .replace(/(<li>[\s\S]*<\/li>)/, '<ul>$1</ul>')
-    .replace(/\n/g, '<br/>');
 }
