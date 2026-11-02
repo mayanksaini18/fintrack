@@ -42,10 +42,12 @@ describe('proxy', () => {
     }
   });
 
-  it('sends signed-out visitors of private pages to sign in', async () => {
-    const res = await run('/budgets', { headers: { 'sec-fetch-dest': 'document', accept: 'text/html' } });
-
-    expect(passesThrough(res)).toBe(false);
-    expect(res.status).toBe(307);
+  it('stops signed-out visitors at private pages but not at public ones', async () => {
+    // Without browser headers Clerk answers a protected page with its 404 rewrite; a document
+    // request would get the development-instance handshake for every page, public or not
+    for (const path of ['/budgets', '/recurring', '/transactions', '/insights']) {
+      expect(passesThrough(await run(path)), path).toBe(false);
+    }
+    expect(passesThrough(await run('/dashboard'))).toBe(true);
   });
 });
