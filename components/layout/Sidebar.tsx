@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target, MessageSquareText } from 'lucide-react';
+import { LayoutDashboard, Receipt, TrendingUp, CalendarClock, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import { useUser, UserButton } from '@clerk/nextjs';
@@ -13,7 +13,10 @@ const navItems = [
   { href: '/recurring', label: 'Recurring', icon: CalendarClock },
   { href: '/budgets', label: 'Budgets', icon: Target },
   { href: '/insights', label: 'Insights', icon: TrendingUp },
-  { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
+  // AI Chat is switched off for now. Its page and API are kept in app/(app)/_ai-chat and
+  // app/api/_ai-chat (a leading _ keeps a folder out of routing). To bring it back, drop the _
+  // and restore this line (with MessageSquareText from lucide-react):
+  // { href: '/ai-chat', label: 'AI Chat', icon: MessageSquareText },
 ];
 
 export default function Sidebar() {
