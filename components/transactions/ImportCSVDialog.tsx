@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Upload, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { isPaytmFormat, parseGeneric, parsePaytm, type ParsedRow } from '@/lib/statement-import';
+import { describeImport, isPaytmFormat, parseGeneric, parsePaytm, type ParsedRow } from '@/lib/statement-import';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface Props { open: boolean; onClose: () => void; }
@@ -49,8 +49,8 @@ export default function ImportCSVDialog({ open, onClose }: Props) {
     if (importing) return;
     setImporting(true);
     try {
-      await importTransactions(parsed);
-      toast.success(`Imported ${parsed.length} transactions from ${detectedFormat}`);
+      const result = await importTransactions(parsed);
+      (result.inserted > 0 ? toast.success : toast.info)(describeImport(result));
       handleClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Import failed');

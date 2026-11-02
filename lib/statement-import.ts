@@ -291,3 +291,17 @@ export function isPaytmFormat(csvText: string): boolean {
   const top = csvText.slice(0, 400).toLowerCase();
   return top.includes('passbook payments history') || top.includes('paytm statement') || top.includes('total money paid');
 }
+
+export interface ImportResult {
+  inserted: number;
+  skipped: number;
+  invalid: number;
+}
+
+// "Imported 48 transactions. 2 were already in Kharcha."
+export function describeImport({ inserted, skipped, invalid }: ImportResult): string {
+  const parts = [inserted === 0 ? 'Nothing new to import.' : `Imported ${inserted} transaction${inserted === 1 ? '' : 's'}.`];
+  if (skipped > 0) parts.push(`${skipped} ${skipped === 1 ? 'was' : 'were'} already in Kharcha.`);
+  if (invalid > 0) parts.push(`${invalid} couldn't be read and ${invalid === 1 ? 'was' : 'were'} skipped.`);
+  return parts.join(' ');
+}

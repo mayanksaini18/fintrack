@@ -42,6 +42,11 @@ describe('finance store writes', () => {
     await expect(useFinanceStore.getState().bulkDeleteTransactions(['tx_1'])).rejects.toThrow('Failed to delete transactions');
   });
 
+  it('importTransactions reports how many rows were added, skipped and unreadable', async () => {
+    serverReplies({ status: 201, body: { inserted: 3, skipped: 2, invalid: 1 } });
+    await expect(useFinanceStore.getState().importTransactions([tx])).resolves.toEqual({ inserted: 3, skipped: 2, invalid: 1 });
+  });
+
   it('a successful save reloads the list', async () => {
     const saved = { id: 'tx_1', ...tx };
     serverReplies({ status: 201, body: saved }, { status: 200, body: [saved] });

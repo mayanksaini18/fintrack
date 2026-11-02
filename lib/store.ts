@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
+import type { ImportResult } from '@/lib/statement-import';
 import { Transaction, Role, Filters, Category, TransactionType } from '@/types';
 
 interface FinanceStore {
@@ -20,7 +21,7 @@ interface FinanceStore {
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   bulkDeleteTransactions: (ids: string[]) => Promise<void>;
-  importTransactions: (txns: Omit<Transaction, 'id'>[]) => Promise<void>;
+  importTransactions: (txns: Omit<Transaction, 'id'>[]) => Promise<ImportResult>;
 }
 
 const defaultFilters: Filters = {
@@ -102,11 +103,13 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   },
 
   importTransactions: async (txns) => {
-    await apiFetch('/api/transactions/bulk', {
+    const res = await apiFetch('/api/transactions/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ transactions: txns }),
     });
+    const result: ImportResult = await res.json();
     await get().fetchTransactions();
+    return result;
   },
 }));

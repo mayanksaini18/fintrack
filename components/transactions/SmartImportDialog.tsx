@@ -15,6 +15,7 @@ import { Upload, FileText, Loader2, Check, X, Sparkles } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Transaction } from '@/types';
 import { toast } from 'sonner';
+import { describeImport } from '@/lib/statement-import';
 
 interface ParsedTransaction {
   date: string;
@@ -105,8 +106,8 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     }));
 
     try {
-      await importTransactions(txns);
-      toast.success(`Imported ${selected.length} transactions from ${filename}`);
+      const result = await importTransactions(txns);
+      (result.inserted > 0 ? toast.success : toast.info)(describeImport(result));
       handleClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Import failed');

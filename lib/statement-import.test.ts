@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseGeneric, parsePaytm } from './statement-import';
+import { describeImport, parseGeneric, parsePaytm } from './statement-import';
 
 const today = new Date('2026-11-02T10:00:00+05:30');
 
@@ -117,5 +117,19 @@ describe('parseGeneric', () => {
     const { rows, errors } = parseGeneric('Date,Description,Debit\n31/02/2026,Rent,15000\n01/03/2026,Groceries,800');
     expect(dates(rows)).toEqual(['2026-03-01']);
     expect(errors).toHaveLength(1);
+  });
+});
+
+describe('describeImport', () => {
+  it('says how many were added and how many were already there', () => {
+    expect(describeImport({ inserted: 48, skipped: 2, invalid: 0 })).toBe('Imported 48 transactions. 2 were already in Kharcha.');
+  });
+
+  it('says when nothing was new', () => {
+    expect(describeImport({ inserted: 0, skipped: 5, invalid: 0 })).toBe('Nothing new to import. 5 were already in Kharcha.');
+  });
+
+  it('mentions rows that could not be read', () => {
+    expect(describeImport({ inserted: 1, skipped: 0, invalid: 1 })).toBe("Imported 1 transaction. 1 couldn't be read and was skipped.");
   });
 });
