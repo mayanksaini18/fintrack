@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useFinanceStore } from '@/lib/store';
 import { Transaction, Category, TransactionType } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -32,6 +32,7 @@ import {
 import { Pencil, Trash2, ChevronLeft, ChevronRight, FileX, Plus, Download, AlertTriangle, FileUp, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toWholeRupees } from '@/lib/money';
+import { applyFilters } from '@/lib/filters';
 import { toast } from 'sonner';
 import AddTransactionDialog from './AddTransactionDialog';
 import ImportCSVDialog from './ImportCSVDialog';
@@ -57,7 +58,8 @@ const CATEGORY_DOT: Record<string, string> = {
 };
 
 export default function TransactionTable() {
-  const { transactions, role, deleteTransaction, updateTransaction, bulkDeleteTransactions } = useFinanceStore();
+  const { transactions, filters, role, deleteTransaction, updateTransaction, bulkDeleteTransactions } = useFinanceStore();
+  const visible = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
   const isAdmin = role === 'admin';
 
   const [page, setPage] = useState(1);
@@ -83,9 +85,9 @@ export default function TransactionTable() {
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(transactions.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(page, totalPages);
-  const paged = transactions.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+  const paged = visible.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
 
   function openEdit(tx: Transaction) {
     setEditTx(tx);
@@ -157,7 +159,7 @@ export default function TransactionTable() {
 
   function exportCSV() {
     const headers = ['Date', 'Description', 'Category', 'Type', 'Amount'];
-    const rows = transactions.map((tx) => [
+    const rows = visible.map((tx) => [
       formatDate(tx.date),
       `"${tx.description.replace(/"/g, '""')}"`,
       tx.category,
@@ -172,7 +174,7 @@ export default function TransactionTable() {
     a.download = `kharcha-transactions-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`Exported ${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`);
+    toast.success(`Exported ${visible.length} transaction${visible.length !== 1 ? 's' : ''}`);
   }
 
   const allPageSelected = paged.length > 0 && paged.every((tx) => selected.has(tx.id));
@@ -214,7 +216,7 @@ export default function TransactionTable() {
           size="sm"
           className="h-8 gap-1.5 text-xs border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-white/50 hover:text-zinc-900 dark:hover:text-white font-normal backdrop-blur-sm"
           onClick={exportCSV}
-          disabled={transactions.length === 0}
+          disabled={visible.length === 0}
         >
           <Download className="w-3.5 h-3.5" />
           Export CSV
@@ -353,10 +355,10 @@ export default function TransactionTable() {
         </div>
       </div>
 
-      {transactions.length > 0 && (
+      {visible.length > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-zinc-400 dark:text-white/30">
-            {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, transactions.length)} of {transactions.length}
+            {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, visible.length)} of {visible.length}
           </p>
           <div className="flex items-center gap-1">
             <Button

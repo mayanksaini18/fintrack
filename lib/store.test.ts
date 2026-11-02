@@ -5,7 +5,7 @@ const tx = { date: '2026-11-01T00:00:00.000Z', amount: 250, category: 'Food' as 
 
 // Answers each request in order; anything after the list is a successful empty list.
 function serverReplies(...replies: { status: number; body: unknown }[]) {
-  const fetchMock = vi.fn(async () => {
+  const fetchMock = vi.fn<typeof fetch>(async () => {
     const next = replies.shift() ?? { status: 200, body: [] };
     return new Response(JSON.stringify(next.body), { status: next.status });
   });
@@ -56,5 +56,55 @@ describe('finance store writes', () => {
     await useFinanceStore.getState().fetchTransactions();
     expect(useFinanceStore.getState().transactions).toEqual([existing]);
     expect(useFinanceStore.getState().loading).toBe(false);
+  });
+});
+
+describe('finance store reads', () => {
+  it('changing a filter does not go back to the server', async () => {
+    const fetchMock = serverReplies();
+    useFinanceStore.getState().setFilter('search', 'swiggy');
+    useFinanceStore.getState().setFilter('category', 'Food');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('always loads the full list, whatever the filters, so the dashboard sees everything', async () => {
+    const fetchMock = serverReplies();
+    useFinanceStore.setState({ filters: { search: 'swiggy', category: 'Food', type: 'expense', sortBy: 'amount', sortOrder: 'asc' } });
+    await useFinanceStore.getState().fetchTransactions();
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).not.toMatch(/search|category|type=/);
+  });
+
+  it('marks the first load as done, and a later reload keeps it done', async () => {
+    serverReplies();
+    useFinanceStore.setState({ loaded: false });
+    await useFinanceStore.getState().fetchTransactions();
+    expect(useFinanceStore.getState().loaded).toBe(true);
+
+    const reload = useFinanceStore.getState().fetchTransactions();
+    expect(useFinanceStore.getState().loaded).toBe(true);
+    await reload;
+  });
+
+  it('ignores an older reply that arrives after a newer one', async () => {
+    const older = { id: 'old', ...tx };
+    const newer = { id: 'new', ...tx };
+    let releaseOlder: () => void = () => {};
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockImplementationOnce(
+          () => new Promise<Response>((resolve) => { releaseOlder = () => resolve(new Response(JSON.stringify([older]))); }),
+        )
+        .mockImplementationOnce(async () => new Response(JSON.stringify([newer]))),
+    );
+
+    const first = useFinanceStore.getState().fetchTransactions();
+    await useFinanceStore.getState().fetchTransactions();
+    releaseOlder();
+    await first;
+
+    expect(useFinanceStore.getState().transactions).toEqual([newer]);
   });
 });

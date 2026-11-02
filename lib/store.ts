@@ -6,10 +6,13 @@ import { apiFetch } from '@/lib/api';
 import { Transaction, Role, Filters, Category, TransactionType } from '@/types';
 
 interface FinanceStore {
+  // Always the full list: the dashboard totals it, the Transactions page filters it with applyFilters()
   transactions: Transaction[];
   role: Role;
   filters: Filters;
   loading: boolean;
+  // True once the first load has finished, so later reloads don't blank the page
+  loaded: boolean;
   setRole: (role: Role) => void;
   setFilter: (key: keyof Filters, value: string) => void;
   fetchTransactions: () => Promise<void>;
@@ -28,21 +31,15 @@ const defaultFilters: Filters = {
   sortOrder: 'desc',
 };
 
-function buildQuery(filters: Filters): string {
-  const params = new URLSearchParams();
-  if (filters.search) params.set('search', filters.search);
-  if (filters.category !== 'all') params.set('category', filters.category);
-  if (filters.type !== 'all') params.set('type', filters.type);
-  params.set('sortBy', filters.sortBy);
-  params.set('sortOrder', filters.sortOrder);
-  return params.toString();
-}
+// Each load gets a number so a slow, older reply can't overwrite a newer one
+let latestLoad = 0;
 
 export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   transactions: [],
   role: 'admin',
   filters: defaultFilters,
   loading: true,
+  loaded: false,
 
   setRole: (role: Role) => set({ role }),
 
@@ -53,19 +50,20 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
         [key]: value as Category | TransactionType | 'all' | 'date' | 'amount' | 'asc' | 'desc' | string,
       },
     }));
-    get().fetchTransactions();
   },
 
   // A failed reload keeps the list that's already on screen
   fetchTransactions: async () => {
+    const load = ++latestLoad;
     set({ loading: true });
-    const query = buildQuery(get().filters);
     try {
-      const res = await apiFetch(`/api/transactions?${query}`);
+      const res = await apiFetch('/api/transactions');
       const data = await res.json();
-      set({ transactions: Array.isArray(data) ? data : [], loading: false });
+      if (load !== latestLoad) return;
+      set({ transactions: Array.isArray(data) ? data : [], loading: false, loaded: true });
     } catch {
-      set({ loading: false });
+      if (load !== latestLoad) return;
+      set({ loading: false, loaded: true });
       toast.error("Couldn't load your transactions. Please refresh the page.");
     }
   },
