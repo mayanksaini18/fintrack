@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Loader2, Check, X, Sparkles } from 'lucide-react';
+import { Upload, FileText, Loader2, Check, X, Sparkles, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { Transaction } from '@/types';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
   const [parsed, setParsed] = useState<ParsedTransaction[]>([]);
   const [filename, setFilename] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [truncated, setTruncated] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -62,6 +63,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
         selected: true,
       }));
       setParsed(withSelection);
+      setTruncated(Boolean(data.truncated));
       setStep('review');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse document');
@@ -120,6 +122,7 @@ export default function SmartImportDialog({ open, onClose }: Props) {
     setParsed([]);
     setFilename('');
     setError(null);
+    setTruncated(false);
     if (fileRef.current) fileRef.current.value = '';
     onClose();
   }
@@ -207,6 +210,15 @@ export default function SmartImportDialog({ open, onClose }: Props) {
                 {parsed.every((t) => t.selected) ? 'Deselect all' : 'Select all'}
               </Button>
             </div>
+
+            {truncated && (
+              <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  This statement is long, so only the first part was read. Split it into smaller files to import the rest.
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-3 text-xs text-zinc-500 px-1">
               <span>Selected: <strong className="text-zinc-700 dark:text-zinc-300">{selectedCount}</strong></span>

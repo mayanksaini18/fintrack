@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { AI_MODEL } from '@/lib/ai';
+import { AI_MODEL, AI_PROVIDER_OPTIONS } from '@/lib/ai';
 import { rateLimit } from '@/lib/rate-limit';
 import { db } from '@/lib/db';
 import { transactions } from '@/lib/db/schema';
@@ -34,8 +34,10 @@ export async function GET() {
     description: t.description,
   }));
 
-  const { text } = await generateText({
+  const { text, finishReason } = await generateText({
     model: AI_MODEL,
+    providerOptions: AI_PROVIDER_OPTIONS,
+    maxOutputTokens: 4000,
     system: `You are a personal finance advisor analyzing a user's transaction data.
 Give concise, actionable insights in plain language. Use Indian Rupee (₹) for amounts.
 Format your response as 4-6 bullet points using markdown. Each bullet should be a specific,
@@ -43,6 +45,10 @@ data-driven insight — not generic advice. Include specific numbers and percent
 Keep the tone friendly and encouraging.`,
     prompt: `Analyze these transactions and give me personalized financial insights:\n\n${JSON.stringify(summary)}`,
   });
+
+  if (finishReason === 'content-filter') {
+    return Response.json({ error: "Kharcha couldn't write insights for this data. Try again later." }, { status: 422 });
+  }
 
   return Response.json({ insights: text });
 }
