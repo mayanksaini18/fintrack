@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -11,21 +11,26 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue>({ theme: 'light', toggle: () => {} });
 
+// The theme is read from localStorage as it renders, instead of being copied into state by an
+// effect. The server can't see localStorage, so it renders the default, dark.
+const listeners = new Set<() => void>();
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+const getTheme = () => (localStorage.getItem('kharcha-theme') as Theme | null) ?? 'dark';
+const getServerTheme = (): Theme => 'dark';
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
 
   useEffect(() => {
-    const stored = localStorage.getItem('kharcha-theme') as Theme | null;
-    const initial = stored ?? 'dark';
-    setTheme(initial);
-    document.documentElement.classList.toggle('dark', initial === 'dark');
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   function toggle() {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    document.documentElement.classList.toggle('dark', next === 'dark');
-    localStorage.setItem('kharcha-theme', next);
+    localStorage.setItem('kharcha-theme', theme === 'dark' ? 'light' : 'dark');
+    listeners.forEach((listener) => listener());
   }
 
   return (

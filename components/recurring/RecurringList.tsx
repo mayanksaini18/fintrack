@@ -58,21 +58,25 @@ export default function RecurringList() {
   // Each load gets a number so a slow, older reply can't overwrite a newer one
   const latestLoad = useRef(0);
 
-  const fetchItems = useCallback(async () => {
+  // A promise chain, not async/await, so the react-hooks lint can see that state is only set once
+  // the reply is in: it counts a setState anywhere in an async function as synchronous
+  const fetchItems = useCallback(() => {
     const load = ++latestLoad.current;
-    try {
-      const res = await apiFetch('/api/recurring');
-      const data = await res.json();
-      if (load !== latestLoad.current) return;
-      setItems(data);
-      setLoadError(false);
-    } catch (err) {
-      if (load !== latestLoad.current) return;
-      setLoadError(true);
-      toast.error(err instanceof Error ? err.message : "Couldn't load your recurring items");
-    } finally {
-      if (load === latestLoad.current) setLoading(false);
-    }
+    return apiFetch('/api/recurring')
+      .then((res) => res.json())
+      .then((data: RecurringTransaction[]) => {
+        if (load !== latestLoad.current) return;
+        setItems(data);
+        setLoadError(false);
+      })
+      .catch((err) => {
+        if (load !== latestLoad.current) return;
+        setLoadError(true);
+        toast.error(err instanceof Error ? err.message : "Couldn't load your recurring items");
+      })
+      .finally(() => {
+        if (load === latestLoad.current) setLoading(false);
+      });
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);

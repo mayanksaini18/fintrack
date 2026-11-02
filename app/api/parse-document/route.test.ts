@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as XLSX from 'xlsx';
-import { fakeAnthropic, tinyPdf, type CapturedRequest } from '@/test/anthropic';
+import { fakeAnthropic, lockedPdf, tinyPdf, type CapturedRequest } from '@/test/anthropic';
 
 const state = vi.hoisted(() => ({ model: null as unknown, userId: 'user_a' as string | null }));
 vi.mock('@clerk/nextjs/server', () => ({ auth: async () => ({ userId: state.userId }) }));
@@ -101,6 +101,21 @@ describe('POST /api/parse-document', () => {
 
     expect(res.status).toBe(200);
     expect(JSON.stringify(requests[0].body)).toContain('Paid to Swiggy 249.50');
+  });
+
+  it('asks for an unlocked copy of a password-protected PDF, without calling Claude', async () => {
+    const res = await upload(new Uint8Array(lockedPdf()), 'statement.pdf');
+
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toMatch(/^This PDF is password-protected\./);
+    expect(requests).toHaveLength(0);
+  });
+
+  it('names a file type it cannot read', async () => {
+    const res = await upload('PK', 'statement.docx');
+
+    expect(res.status).toBe(422);
+    expect((await res.json()).error).toBe('Unsupported file type: .docx');
   });
 
   it('reads every sheet of an Excel statement', async () => {

@@ -120,6 +120,25 @@ describe('parseGeneric', () => {
   });
 });
 
+describe('parseGeneric date order (review follow-ups)', () => {
+  it('reads a file that puts the month first, like 10/31/2026, the same way for every row', () => {
+    const { rows, errors } = parseGeneric('Date,Description,Debit\n10/31/2026,Rent,15000\n11/02/2026,Groceries,800');
+    expect(errors).toEqual([]);
+    expect(dates(rows)).toEqual(['2026-10-31', '2026-11-02']);
+  });
+
+  it('keeps the day first, as Indian banks write dates, when every date could be either', () => {
+    const { rows } = parseGeneric('Date,Description,Debit\n01/11/2026,Rent,15000\n02/11/2026,Groceries,800');
+    expect(dates(rows)).toEqual(['2026-11-01', '2026-11-02']);
+  });
+
+  it('stays day first when a file mixes both orders, and skips the rows that do not fit', () => {
+    const { rows, errors } = parseGeneric('Date,Description,Debit\n13/10/2026,Rent,15000\n10/14/2026,Groceries,800');
+    expect(dates(rows)).toEqual(['2026-10-13']);
+    expect(errors).toHaveLength(1);
+  });
+});
+
 describe('describeImport', () => {
   it('says how many were added and how many were already there', () => {
     expect(describeImport({ inserted: 48, skipped: 2, invalid: 0 })).toBe('Imported 48 transactions. 2 were already in Kharcha.');
