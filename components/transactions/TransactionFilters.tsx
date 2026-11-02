@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Search, ArrowUpDown, X } from 'lucide-react';
 import { CATEGORIES } from '@/lib/categories';
 
-
 export default function TransactionFilters() {
   const { filters, setFilter } = useFinanceStore();
 

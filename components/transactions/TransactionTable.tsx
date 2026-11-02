@@ -40,7 +40,6 @@ import AddTransactionDialog from './AddTransactionDialog';
 import ImportCSVDialog from './ImportCSVDialog';
 import { CATEGORIES } from '@/lib/categories';
 
-
 const PAGE_SIZE = 10;
 
 const CATEGORY_DOT: Record<string, string> = {
@@ -61,8 +60,12 @@ export default function TransactionTable() {
   const visible = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
   const isAdmin = role === 'admin';
 
-  const [page, setPage] = useState(1);
+  // The page lives in the store so changing a filter can send it back to page 1
+  const page = useFinanceStore((s) => s.page);
+  const setPage = useFinanceStore((s) => s.setPage);
   const [addOpen, setAddOpen] = useState(false);
+  // A new key each time the dialog opens gives it a fresh form, with today's date
+  const [addKey, setAddKey] = useState(0);
   const [importOpen, setImportOpen] = useState(false);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
   const [editForm, setEditForm] = useState<Partial<Transaction>>({});
@@ -125,6 +128,11 @@ export default function TransactionTable() {
     if (!deleteTarget) return;
     await run(async () => {
       await deleteTransaction(deleteTarget.id);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(deleteTarget.id);
+        return next;
+      });
       toast.success('Transaction deleted');
       setDeleteTarget(null);
     }, 'Could not delete the transaction');
@@ -220,7 +228,10 @@ export default function TransactionTable() {
             <Button
               size="sm"
               className="h-8 gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white font-medium rounded-lg px-3"
-              onClick={() => setAddOpen(true)}
+              onClick={() => {
+                setAddKey((k) => k + 1);
+                setAddOpen(true);
+              }}
             >
               <Plus className="w-3.5 h-3.5" />
               Add Transaction
@@ -351,7 +362,7 @@ export default function TransactionTable() {
               size="icon"
               className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setPage(safeCurrentPage - 1)}
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </Button>
@@ -363,7 +374,7 @@ export default function TransactionTable() {
               size="icon"
               className="h-7 w-7 border-zinc-200 dark:border-white/[0.08] dark:bg-white/[0.04] text-zinc-500 dark:text-white/50 dark:hover:text-white bg-white"
               disabled={safeCurrentPage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setPage(safeCurrentPage + 1)}
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </Button>
@@ -372,7 +383,7 @@ export default function TransactionTable() {
       )}
 
       {/* Add dialog */}
-      <AddTransactionDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddTransactionDialog key={addKey} open={addOpen} onClose={() => setAddOpen(false)} />
 
       {/* Import dialog */}
       <ImportCSVDialog open={importOpen} onClose={() => setImportOpen(false)} />

@@ -24,7 +24,6 @@ import { dateInputValue } from '@/lib/utils';
 import { toast } from 'sonner';
 import { CATEGORIES } from '@/lib/categories';
 
-
 interface Props {
   open: boolean;
   onClose: () => void;

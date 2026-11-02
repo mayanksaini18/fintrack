@@ -24,7 +24,7 @@ import { apiFetch } from '@/lib/api';
 import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
 import { CATEGORIES } from '@/lib/categories';
-
+import LoadError from '@/components/LoadError';
 
 const CATEGORY_ICONS: Record<string, string> = {
   Food: '🍔', Transport: '🚗', Entertainment: '🎬', Shopping: '🛍️',
@@ -39,12 +39,14 @@ export default function BudgetList() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editLimit, setEditLimit] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   const fetchBudgets = useCallback(async () => {
     try {
       const res = await apiFetch('/api/budgets');
       const data: Budget[] = await res.json();
       setBudgets(data);
+      setLoadError(false);
       const overBudget = data.filter((b) => b.spent > b.monthlyLimit);
       if (overBudget.length > 0) {
         toast.error(
@@ -55,6 +57,7 @@ export default function BudgetList() {
         );
       }
     } catch (err) {
+      setLoadError(true);
       toast.error(err instanceof Error ? err.message : "Couldn't load your budgets");
     } finally {
       setLoading(false);
@@ -109,6 +112,11 @@ export default function BudgetList() {
         ))}
       </div>
     );
+  }
+
+  // Without the list, a re-added budget would duplicate one that already exists
+  if (loadError && budgets.length === 0) {
+    return <LoadError what="budgets" onRetry={fetchBudgets} />;
   }
 
   return (

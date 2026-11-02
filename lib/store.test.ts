@@ -113,3 +113,45 @@ describe('finance store reads', () => {
     expect(useFinanceStore.getState().transactions).toEqual([newer]);
   });
 });
+
+describe('finance store accounts and pages (review follow-ups)', () => {
+  const mine = { id: 'mine', ...tx };
+
+  it("clears the previous account's list as soon as another account starts loading", async () => {
+    useFinanceStore.setState({ transactions: [mine], loaded: true, ownerId: 'user_a' });
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));
+
+    void useFinanceStore.getState().fetchTransactions(null);
+
+    expect(useFinanceStore.getState().transactions).toEqual([]);
+    expect(useFinanceStore.getState().loaded).toBe(false);
+  });
+
+  it('keeps the list on screen while the same account reloads', async () => {
+    useFinanceStore.setState({ transactions: [mine], loaded: true, ownerId: 'user_a' });
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));
+
+    void useFinanceStore.getState().fetchTransactions('user_a');
+
+    expect(useFinanceStore.getState().transactions).toEqual([mine]);
+    expect(useFinanceStore.getState().loaded).toBe(true);
+  });
+
+  it('reports a failed load, and clears that once a load works', async () => {
+    serverReplies({ status: 500, body: { error: 'boom' } }, { status: 200, body: [mine] });
+
+    await useFinanceStore.getState().fetchTransactions();
+    expect(useFinanceStore.getState().loadError).toBe(true);
+
+    await useFinanceStore.getState().fetchTransactions();
+    expect(useFinanceStore.getState().loadError).toBe(false);
+  });
+
+  it('goes back to page 1 when a filter changes', () => {
+    useFinanceStore.getState().setPage(3);
+
+    useFinanceStore.getState().setFilter('search', 'swiggy');
+
+    expect(useFinanceStore.getState().page).toBe(1);
+  });
+});

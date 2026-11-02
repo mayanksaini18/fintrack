@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -25,7 +25,7 @@ import { apiFetch } from '@/lib/api';
 import { toWholeRupees } from '@/lib/money';
 import { toast } from 'sonner';
 import { CATEGORIES } from '@/lib/categories';
-
+import LoadError from '@/components/LoadError';
 
 const FREQUENCY_LABELS: Record<Frequency, string> = {
   weekly: 'Weekly',
@@ -51,15 +51,27 @@ export default function RecurringList() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  // A new key each time the dialog opens gives it a fresh form, with today's date
+  const [addKey, setAddKey] = useState(0);
+  // Each load gets a number so a slow, older reply can't overwrite a newer one
+  const latestLoad = useRef(0);
 
   const fetchItems = useCallback(async () => {
+    const load = ++latestLoad.current;
     try {
       const res = await apiFetch('/api/recurring');
-      setItems(await res.json());
+      const data = await res.json();
+      if (load !== latestLoad.current) return;
+      setItems(data);
+      setLoadError(false);
     } catch (err) {
+      if (load !== latestLoad.current) return;
+      setLoadError(true);
       toast.error(err instanceof Error ? err.message : "Couldn't load your recurring items");
     } finally {
-      setLoading(false);
+      if (load === latestLoad.current) setLoading(false);
     }
   }, []);
 
@@ -76,6 +88,8 @@ export default function RecurringList() {
   }
 
   async function handleToggle(id: string, isActive: boolean) {
+    if (togglingId) return;
+    setTogglingId(id);
     try {
       await apiFetch(`/api/recurring/${id}`, {
         method: 'PUT',
@@ -85,9 +99,11 @@ export default function RecurringList() {
       });
       toast.success(isActive ? 'Paused' : 'Resumed');
       // Resuming can move the next date past the paused period, so reload instead of patching locally
-      fetchItems();
+      await fetchItems();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not update the recurring item');
+    } finally {
+      setTogglingId(null);
     }
   }
 
@@ -141,6 +157,10 @@ export default function RecurringList() {
     );
   }
 
+  if (loadError && items.length === 0) {
+    return <LoadError what="recurring items" onRetry={fetchItems} />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Summary bar */}
@@ -170,7 +190,10 @@ export default function RecurringList() {
           </Button>
           <Button
             size="sm"
-            onClick={() => setShowAdd(true)}
+            onClick={() => {
+              setAddKey((k) => k + 1);
+              setShowAdd(true);
+            }}
             className="h-8 text-xs gap-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -231,6 +254,7 @@ export default function RecurringList() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                      disabled={togglingId === item.id}
                       onClick={() => handleToggle(item.id, item.isActive)}
                     >
                       {item.isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -251,7 +275,7 @@ export default function RecurringList() {
         </div>
       )}
 
-      <AddRecurringDialog open={showAdd} onClose={() => setShowAdd(false)} onAdded={fetchItems} />
+      <AddRecurringDialog key={addKey} open={showAdd} onClose={() => setShowAdd(false)} onAdded={fetchItems} />
     </div>
   );
 }

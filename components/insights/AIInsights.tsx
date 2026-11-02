@@ -11,7 +11,7 @@ export default function AIInsights() {
   const [insights, setInsights] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isSignedIn } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
 
   async function fetchInsights() {
     if (!isSignedIn) {
@@ -44,7 +44,7 @@ export default function AIInsights() {
           variant="ghost"
           size="sm"
           onClick={fetchInsights}
-          disabled={loading}
+          disabled={loading || !isLoaded}
           className="h-7 text-xs gap-1.5 text-zinc-600 dark:text-zinc-300 hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-white/[0.06]"
         >
           {loading ? (

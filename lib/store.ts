@@ -14,9 +14,16 @@ interface FinanceStore {
   loading: boolean;
   // True once the first load has finished, so later reloads don't blank the page
   loaded: boolean;
+  // True when the last load failed, so an empty list isn't mistaken for an empty account
+  loadError: boolean;
+  // The account the list belongs to: a Clerk user id, null for the signed-out demo, undefined before the first load
+  ownerId: string | null | undefined;
+  // The Transactions page's current page, reset whenever a filter changes
+  page: number;
   setRole: (role: Role) => void;
   setFilter: (key: keyof Filters, value: string) => void;
-  fetchTransactions: () => Promise<void>;
+  setPage: (page: number) => void;
+  fetchTransactions: (ownerId?: string | null) => Promise<void>;
   addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
@@ -41,6 +48,9 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
   filters: defaultFilters,
   loading: true,
   loaded: false,
+  loadError: false,
+  ownerId: undefined,
+  page: 1,
 
   setRole: (role: Role) => set({ role }),
 
@@ -50,22 +60,29 @@ export const useFinanceStore = create<FinanceStore>()((set, get) => ({
         ...state.filters,
         [key]: value as Category | TransactionType | 'all' | 'date' | 'amount' | 'asc' | 'desc' | string,
       },
+      page: 1,
     }));
   },
 
+  setPage: (page: number) => set({ page }),
+
   // A failed reload keeps the list that's already on screen
-  fetchTransactions: async () => {
+  fetchTransactions: async (ownerId = get().ownerId) => {
+    // Another account's list must never show, not even while this one loads
+    if (ownerId !== get().ownerId) {
+      set({ transactions: [], loaded: false, loadError: false, ownerId, filters: defaultFilters, page: 1 });
+    }
     const load = ++latestLoad;
     set({ loading: true });
     try {
       const res = await apiFetch('/api/transactions');
       const data = await res.json();
       if (load !== latestLoad) return;
-      set({ transactions: Array.isArray(data) ? data : [], loading: false, loaded: true });
+      set({ transactions: Array.isArray(data) ? data : [], loading: false, loaded: true, loadError: false });
     } catch {
       if (load !== latestLoad) return;
-      set({ loading: false, loaded: true });
-      toast.error("Couldn't load your transactions. Please refresh the page.");
+      set({ loading: false, loaded: true, loadError: true });
+      toast.error("Couldn't load your transactions. Please try again.");
     }
   },
 
