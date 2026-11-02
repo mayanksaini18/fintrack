@@ -97,6 +97,16 @@ describe('PUT /api/recurring/[id]', () => {
     expect((await db.select().from(transactions)).map((t) => t.date.toISOString())).toEqual(['2026-11-01T00:00:00.000Z']);
   });
 
+  it("keeps the entry due on the user's today when pausing just after midnight in India", async () => {
+    // Weekly on Tuesdays. Tue 10 Nov 01:00 IST is still Mon 9 Nov in UTC, before the daily cron.
+    vi.setSystemTime(new Date('2026-11-09T19:30:00.000Z'));
+    await addItem({ isActive: true, frequency: 'weekly', startDate: '2026-11-03T00:00:00.000Z', nextDueDate: '2026-11-10T00:00:00.000Z' });
+
+    await put({ isActive: false, today: '2026-11-10' });
+
+    expect((await db.select().from(transactions)).map((t) => t.date.toISOString())).toEqual(['2026-11-10T00:00:00.000Z']);
+  });
+
   it("uses the browser's date when resuming just after midnight in India", async () => {
     // Weekly on Mondays, paused since early November. Tue 10 Nov 01:00 IST is still Mon 9 Nov in UTC.
     vi.setSystemTime(new Date('2026-11-09T19:30:00.000Z'));

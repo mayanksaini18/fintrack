@@ -3,7 +3,7 @@ import { recurringTransactions } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
-import { firstOccurrenceOnOrAfter, processDueRecurring, startOfUserDay } from '@/lib/recurring';
+import { endOfUserDay, firstOccurrenceOnOrAfter, processDueRecurring, startOfUserDay } from '@/lib/recurring';
 import { recurringUpdateSchema } from '@/lib/validation';
 import type { NextRequest } from 'next/server';
 
@@ -32,9 +32,10 @@ export async function PUT(
     let current = await loadCurrent();
     if (!current) return Response.json({ error: 'Recurring item not found' }, { status: 404 });
 
-    // Pausing first creates anything already due, so a later resume only skips dates that fell in the pause
+    // Pausing first creates anything due up to the end of the user's today (the cron would create
+    // today's entry later), so a later resume only skips dates that fell in the pause
     if (changes.isActive === false && current.isActive) {
-      await processDueRecurring(db, { userId, id });
+      await processDueRecurring(db, { userId, id, now: endOfUserDay(today) });
       current = (await loadCurrent()) ?? current;
     }
 

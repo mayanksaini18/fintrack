@@ -67,6 +67,11 @@ export function startOfUserDay(today: string | undefined, now = new Date()): Dat
   return new Date(utcDay);
 }
 
+/** The end of the user's current day, or `now` if that is later. */
+export function endOfUserDay(today: string | undefined, now = new Date()): Date {
+  return new Date(Math.max(now.getTime(), startOfUserDay(today, now).getTime() + DAY_MS - 1));
+}
+
 /** The first date on the schedule that is on or after `from`. */
 export function firstOccurrenceOnOrAfter(schedule: Schedule, from: Date): Date {
   return nextOnSchedule(schedule, from, true);
