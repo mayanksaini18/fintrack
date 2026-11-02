@@ -157,3 +157,78 @@ describe('transactionsToCSV', () => {
     expect(rows).toEqual(saved.map(({ date, description, category, type, amount }) => ({ date, description, category, type, amount })));
   });
 });
+
+describe('parseGeneric amounts (review follow-ups)', () => {
+  it('reads amounts written with Rs., INR or a Dr/Cr prefix', () => {
+    const { rows, errors } = parseGeneric(
+      'Date,Description,Amount\n01/10/2026,Swiggy,Rs.500\n02/10/2026,Rent,"Rs.15,000"\n03/10/2026,Groceries,"Rs. 1,249.50"\n04/10/2026,ATM,Dr. 2000\n05/10/2026,Interest,INR 12 Cr',
+    );
+    expect(errors).toEqual([]);
+    expect(rows.map((r) => [r.description, r.type, r.amount])).toEqual([
+      ['Swiggy', 'expense', 500],
+      ['Rent', 'expense', 15000],
+      ['Groceries', 'expense', 1250],
+      ['ATM', 'expense', 2000],
+      ['Interest', 'income', 12],
+    ]);
+  });
+
+  it('keeps plain purchases as spending when a few rows are negative refunds', () => {
+    const { rows } = parseGeneric(
+      'Date,Description,Amount\n01/10/2026,Swiggy order,450\n02/10/2026,Amazon purchase,2999\n03/10/2026,Uber trip,180\n04/10/2026,Refund from Myntra,-1200',
+    );
+    expect(rows.map((r) => [r.description, r.type])).toEqual([
+      ['Swiggy order', 'expense'],
+      ['Amazon purchase', 'expense'],
+      ['Uber trip', 'expense'],
+      ['Refund from Myntra', 'income'],
+    ]);
+  });
+
+  it('treats negatives as spending when most rows are negative', () => {
+    const { rows } = parseGeneric(
+      'Date,Description,Amount\n01/10/2026,Swiggy,-450\n02/10/2026,Uber,-180\n05/10/2026,Salary credit,85000',
+    );
+    expect(rows.map((r) => [r.description, r.type])).toEqual([
+      ['Swiggy', 'expense'],
+      ['Uber', 'expense'],
+      ['Salary credit', 'income'],
+    ]);
+  });
+});
+
+describe('parsePaytm years (review follow-ups)', () => {
+  it('moves forward again for a row that is out of order just after New Year', () => {
+    const { rows } = parsePaytm(
+      paytmStatement(
+        payment('5 Jan', 'A', '- Rs.10'),
+        payment('1 Jan', 'B', '- Rs.10'),
+        payment('31 Dec', 'C', '- Rs.10'),
+        payment('1 Jan', 'D', '- Rs.10'),
+        payment('30 Dec', 'E', '- Rs.10'),
+        payment('20 Dec', 'F', '- Rs.10'),
+      ),
+      new Date('2026-01-10T10:00:00+05:30'),
+    );
+    expect(dates(rows)).toEqual(['2026-01-05', '2026-01-01', '2025-12-31', '2026-01-01', '2025-12-30', '2025-12-20']);
+  });
+
+  it('never dates a payment after today', () => {
+    const { rows } = parsePaytm(
+      paytmStatement(payment('10 Jun', 'A', '- Rs.10'), payment('1 Dec', 'B', '- Rs.10'), payment('20 Nov', 'C', '- Rs.10')),
+      new Date('2026-06-12T10:00:00+05:30'),
+    );
+    expect(dates(rows)).toEqual(['2026-06-10', '2025-12-01', '2025-11-20']);
+  });
+
+  it("uses India's date, so a device on another timezone gets the same years", () => {
+    const originalTZ = process.env.TZ;
+    process.env.TZ = 'America/Los_Angeles';
+    try {
+      const { rows } = parsePaytm(paytmStatement(payment('2 Nov', 'A', '- Rs.10')), new Date('2026-11-02T10:00:00+05:30'));
+      expect(dates(rows)).toEqual(['2026-11-02']);
+    } finally {
+      process.env.TZ = originalTZ;
+    }
+  });
+});

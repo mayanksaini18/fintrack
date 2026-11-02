@@ -89,9 +89,12 @@ function isoDay(year: number, month: number, day: number): string | null {
     : null;
 }
 
+const IST_OFFSET_MS = 330 * 60 * 1000;
+
 // Paytm rows only say "DD Mon", so the year is worked out by walking the payments from newest
-// to oldest: the newest gets the latest year that isn't after today, and the year steps back
-// whenever the dates jump forward by months, i.e. back across New Year.
+// to oldest: the year steps back whenever the dates jump forward by months (back across New
+// Year), steps forward again for a row slightly out of order just after New Year, and no date
+// is ever after today.
 function assignYears(dates: { month: number; day: number }[], today: Date): number[] {
   const dayOfYear = (d: { month: number; day: number }) => DAYS_BEFORE_MONTH[d.month - 1] + d.day;
 
@@ -107,15 +110,22 @@ function assignYears(dates: { month: number; day: number }[], today: Date): numb
   const newestFirst = dates.map((_, i) => i);
   if (votes > 0) newestFirst.reverse();
 
+  // Paytm dates are Indian calendar days, so compare them with today's date in India
+  const india = new Date(today.getTime() + IST_OFFSET_MS);
+  const thisYear = india.getUTCFullYear();
+  const todayDay = DAYS_BEFORE_MONTH[india.getUTCMonth()] + india.getUTCDate();
+
   const years: number[] = [];
-  let year = today.getFullYear();
-  let previous = DAYS_BEFORE_MONTH[today.getMonth()] + today.getDate();
-  newestFirst.forEach((i, position) => {
+  let year = thisYear;
+  let previous = todayDay;
+  for (const i of newestFirst) {
     const current = dayOfYear(dates[i]);
-    if (position === 0 ? current > previous : current - previous > 182) year--;
+    if (current - previous > 182) year--;
+    else if (previous - current > 182) year++;
+    while (year > thisYear || (year === thisYear && current > todayDay)) year--;
     years[i] = year;
     previous = current;
-  });
+  }
   return years;
 }
 
@@ -248,9 +258,12 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
     return { rows: [], errors: ['Could not detect columns. Expected Date, Description, and Debit/Credit or Amount columns.'] };
   }
 
-  // In a single Amount column, unmarked amounts are money in when other rows mark money out
-  const marksMoneyOut =
-    amountIdx !== -1 && lines.slice(1).some((l) => readAmountCell(parseCSVLine(l)[amountIdx] ?? '').type === 'expense');
+  // A single Amount column either marks spending with a minus (bank style) or lists spending as
+  // plain numbers with refunds negative (card style). Whichever kind of row is more common decides.
+  const cells = amountIdx === -1 ? [] : lines.slice(1).map((l) => readAmountCell(parseCSVLine(l)[amountIdx] ?? ''));
+  const negatives = cells.filter((c) => c.mark === null && c.negative).length;
+  const plain = cells.filter((c) => c.mark === null && !c.negative).length;
+  const minusMeansSpending = negatives >= plain;
 
   for (let i = 1; i < lines.length; i++) {
     const cols = parseCSVLine(lines[i]);
@@ -270,10 +283,11 @@ export function parseGeneric(csvText: string): { rows: ParsedRow[]; errors: stri
       const cell = readAmountCell(cols[amountIdx] ?? '');
       const category = mapCategory('', description);
       amount = cell.amount;
+      const plainIsIncome = minusMeansSpending || category === 'Salary' || category === 'Freelance';
       type =
-        cell.type ??
+        cell.mark ??
         readTypeCell(cols[typeIdx]) ??
-        (marksMoneyOut || category === 'Salary' || category === 'Freelance' ? 'income' : 'expense');
+        (cell.negative ? (minusMeansSpending ? 'expense' : 'income') : plainIsIncome ? 'income' : 'expense');
     } else {
       const debit = parseFloat((cols[debitIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
       const credit = parseFloat((cols[creditIdx] ?? '').replace(/[₹,\s]/g, '')) || 0;
@@ -301,15 +315,18 @@ function readTypeCell(raw: string | undefined): TransactionType | null {
   return null;
 }
 
-// "-450.50", "(450.50)" and "450.50 Dr" are money out; "+450.50" and "450.50 Cr" are money in.
-// Amounts are rounded to whole rupees.
-function readAmountCell(raw: string): { amount: number; type: TransactionType | null } {
+// The amount in a cell, rounded to whole rupees ("Rs.1,249.50" → 1250), and which way the money
+// went when the cell says so: Dr or Cr (before or after the number) or a leading +. A minus or
+// brackets only says "negative"; what that means depends on the file (see parseGeneric).
+function readAmountCell(raw: string): { amount: number; mark: TransactionType | null; negative: boolean } {
   const text = raw.trim();
-  const out = text.startsWith('-') || /^\(.*\)$/.test(text) || /dr\.?$/i.test(text);
-  const into = text.startsWith('+') || /cr\.?$/i.test(text);
+  const number = text.match(/\d[\d,]*(?:\.\d+)?/);
+  const beforeNumber = number ? text.slice(0, number.index) : text;
+  const says = (word: string) => new RegExp(`(?:^|[^a-z])${word}\\.?(?:[^a-z]|$)`, 'i').test(text);
   return {
-    amount: Math.round(parseFloat(text.replace(/[^0-9.]/g, ''))),
-    type: out ? 'expense' : into ? 'income' : null,
+    amount: number ? Math.round(parseFloat(number[0].replace(/,/g, ''))) : NaN,
+    mark: says('dr') ? 'expense' : says('cr') || beforeNumber.includes('+') ? 'income' : null,
+    negative: beforeNumber.includes('-') || /^\(.*\)$/.test(text),
   };
 }
 
